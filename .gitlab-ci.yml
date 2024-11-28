@@ -17,7 +17,7 @@ lint:
     - merge_requests
 
 test:
-  stage: test Admin
+  stage: test
   image: golang:1.23
   script:
     - cd admin
