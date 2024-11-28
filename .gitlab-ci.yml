@@ -17,9 +17,10 @@ lint:
     - merge_requests
 
 test:
-  stage: test
-  image: golang:1.20
+  stage: test Admin
+  image: golang:1.23
   script:
+    - cd admin
     - go test ./... -v -race -coverprofile=coverage.out
     - go tool cover -func=coverage.out
   artifacts:
