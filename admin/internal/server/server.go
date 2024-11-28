@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/config"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -24,7 +25,11 @@ func NewServer(cfg *config.Config, log *zap.Logger) *Server {
 		start := time.Now()
 
 		// Обработчик по умолчанию
-		w.Write([]byte("Hello, world!"))
+		_, err := w.Write([]byte("Hello, world!"))
+		if err != nil {
+			log.Error("Failed to write response", zap.Error(err))
+			return
+		}
 
 		// Логируем запрос
 		log.Info("Request received",
@@ -49,7 +54,7 @@ func StartServer(lc fx.Lifecycle, server *Server) {
 		OnStart: func(ctx context.Context) error {
 			go func() {
 				server.logger.Info("Starting server", zap.String("addr", server.httpServer.Addr))
-				if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				if err := server.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					server.logger.Fatal("Server failed", zap.Error(err))
 				}
 			}()
