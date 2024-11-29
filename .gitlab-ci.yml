@@ -22,6 +22,8 @@ stages:
   - incremental rollout 100%
   - performance
   - cleanup
+  - sast
+
 variables:
   GOPROXY: https://proxy.golang.org
 lint:
@@ -50,7 +52,7 @@ admin_test:
     - main
     - merge_requests
 sast:
-  stage: test
+  stage: sast
   only:
     - main
     - merge_requests
