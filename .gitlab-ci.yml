@@ -51,5 +51,8 @@ admin_test:
     - merge_requests
 sast:
   stage: test
+  only:
+    - main
+    - merge_requests
 include:
   - template: Auto-DevOps.gitlab-ci.yml
