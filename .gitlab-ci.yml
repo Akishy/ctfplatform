@@ -6,49 +6,50 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 stages:
-- lint
-- test
-- build
-- deploy
-- review
-- dast
-- staging
-- canary
-- production
-- incremental rollout 10%
-- incremental rollout 25%
-- incremental rollout 50%
-- incremental rollout 100%
-- performance
-- cleanup
+  - lint
+  - admin_test
+  - test
+  - build
+  - deploy
+  - review
+  - dast
+  - staging
+  - canary
+  - production
+  - incremental rollout 10%
+  - incremental rollout 25%
+  - incremental rollout 50%
+  - incremental rollout 100%
+  - performance
+  - cleanup
 variables:
   GOPROXY: https://proxy.golang.org
 lint:
   stage: lint
   image: golang:1.23
   script:
-  - cd admin
-  - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-  - golangci-lint run
+    - cd admin
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    - golangci-lint run
   only:
-  - main
-  - merge_requests
-test:
-  stage: test
+    - main
+    - merge_requests
+admin_test:
+  stage: admin_test
   image: golang:1.23
   script:
-  - cd admin
-  - go test ./... -v -race -coverprofile=coverage.out
-  - go tool cover -func=coverage.out
+    - cd admin
+    - go test ./... -v -race -coverprofile=coverage.out
+    - go tool cover -func=coverage.out
   artifacts:
     reports:
       junit: junit.xml
     paths:
-    - coverage.out
+      - coverage.out
   only:
-  - main
-  - merge_requests
+    - main
+    - merge_requests
 sast:
   stage: test
 include:
-- template: Auto-DevOps.gitlab-ci.yml
+  - template: Auto-DevOps.gitlab-ci.yml
