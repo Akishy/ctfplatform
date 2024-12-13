@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package deployer;
+
+// Service definition for orchestrating services
+service ServiceOrchestrator {
+
+  // Create a new service from a folder of files
+  rpc CreateService (CreateServiceRequest) returns (CreateServiceResponse);
+
+  // Check the status of a service by its ID
+  rpc Ping (PingRequest) returns (PingResponse);
+
+  // Start a service by its ID
+  rpc UpService (ServiceRequest) returns (ServiceResponse);
+
+  // Stop a service by its ID
+  rpc DownService (ServiceRequest) returns (ServiceResponse);
+}
+
+// Request to create a new service
+message CreateServiceRequest {
+  string folder_path = 1; // Path to the folder containing the service files
+}
+
+// Response after creating a service
+message CreateServiceResponse {
+  string id = 1; // UUID of the created service
+  int32 status_code = 2; // Status code of the operation
+  string message = 3; // Additional message or error description
+}
+
+// Request to check the status of a service
+message PingRequest {
+  string id = 1; // UUID of the service
+}
+
+// Response for the Ping endpoint
+message PingResponse {
+  int32 status_code = 1; // Status code of the operation
+  string message = 2; // Status message or additional information
+}
+
+// Generic request for service operations (up/down)
+message ServiceRequest {
+  string id = 1; // UUID of the service
+}
+
+// Generic response for service operations (up/down)
+message ServiceResponse {
+  int32 status_code = 1; // Status code of the operation
+  string message = 2; // Additional message or error description
+}
