@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package deployer;
 
+option go_package = "deployer/pkg/proto";
+
 // Service definition for orchestrating services
-service ServiceOrchestrator {
+service ServiceDeployer {
 
   // Create a new service from a folder of files
   rpc CreateService (RegisterServiceRequest) returns (RegisterServiceResponse);
