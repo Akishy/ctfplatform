@@ -1,30 +1,24 @@
 package config
 
 import (
-	"github.com/spf13/viper"
-	"log"
+	"github.com/ilyakaznacheev/cleanenv"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/pkg/cache"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/pkg/db"
 )
 
 type Config struct {
-	PostgresURL string
-	RedisURL    string
-	AppPort     string
+	db.PostgresConfig
+	cache.RedisConfig
+	SecretKey string `env:"SECRET_KEY"`
+	AppPort   int    `env:"APP_PORT"`
 }
 
-func NewConfig() *Config {
-	viper.SetDefault("APP_PORT", "8080")
-	viper.SetEnvPrefix("ADMIN")
-	viper.AutomaticEnv()
-
-	config := &Config{
-		PostgresURL: viper.GetString("POSTGRES_URL"),
-		RedisURL:    viper.GetString("REDIS_URL"),
-		AppPort:     viper.GetString("APP_PORT"),
+func New() (*Config, error) {
+	cfg := Config{}
+	err := cleanenv.ReadConfig("./config.env", &cfg)
+	if err != nil {
+		return nil, err
 	}
 
-	if config.PostgresURL == "" || config.RedisURL == "" {
-		log.Fatal("Database configuration is missing")
-	}
-
-	return config
+	return &cfg, nil
 }

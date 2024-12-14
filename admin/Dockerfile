@@ -1,4 +1,4 @@
-FROM golang:1.23 AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
@@ -7,20 +7,18 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ctfplatform ./cmd/main.go
+RUN go build -o admin-app ./cmd/main.go
 
-FROM debian:bookworm-slim
-
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/ctfplatform .
+RUN apk --no-cache add ca-certificates
+
+COPY --from=builder /app/admin-app .
+COPY ./.env /app/config/config.env
+#COPY ../migrations /app/migrations/
 
 EXPOSE 8080
 
-ENV ADMIN_POSTGRES_URL="postgres://user:password@localhost:5432/dbname"
-ENV ADMIN_REDIS_URL="redis://localhost:6379"
-ENV ADMIN_APP_PORT="8080"
-
-CMD ["./ctfplatform"]
+CMD ["./admin-app"]
