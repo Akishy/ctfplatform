@@ -6,48 +6,68 @@ package deployer;
 service ServiceOrchestrator {
 
   // Create a new service from a folder of files
-  rpc CreateService (CreateServiceRequest) returns (CreateServiceResponse);
+  rpc CreateService (RegisterServiceRequest) returns (RegisterServiceResponse);
 
   // Check the status of a service by its ID
-  rpc Ping (PingRequest) returns (PingResponse);
+  rpc PingService (PingServiceRequest) returns (PingServiceResponse);
+
+  rpc PingInstance (PingInstanceRequest) returns (InstanceInfo);
 
   // Start a service by its ID
-  rpc UpService (ServiceRequest) returns (ServiceResponse);
+  rpc StartInstances (StartInstancesRequest) returns (StartInstancesResponse);
 
   // Stop a service by its ID
-  rpc DownService (ServiceRequest) returns (ServiceResponse);
+  rpc StopInstances (StopInstancesRequest) returns (StopInstancesResponse);
 }
 
 // Request to create a new service
-message CreateServiceRequest {
-  string folder_path = 1; // Path to the folder containing the service files
+message RegisterServiceRequest {
+  string code_archive = 1;
 }
 
 // Response after creating a service
-message CreateServiceResponse {
+message RegisterServiceResponse {
   string id = 1; // UUID of the created service
-  int32 status_code = 2; // Status code of the operation
-  string message = 3; // Additional message or error description
 }
 
 // Request to check the status of a service
-message PingRequest {
+message PingServiceRequest {
   string id = 1; // UUID of the service
 }
 
 // Response for the Ping endpoint
-message PingResponse {
+message PingServiceResponse {
+  string message = 1; // Status message or additional information
+  repeated InstanceInfo instances = 2;
+}
+
+message PingInstanceRequest {
+  string instance_id = 1; // UUID of the instance
+}
+
+message InstanceInfo {
   int32 status_code = 1; // Status code of the operation
   string message = 2; // Status message or additional information
+  int32 ssh_port = 3;
+  int32 web_port = 4;
+  string ip = 5;
+  string instance_id = 6; // UUID of the instance
 }
 
-// Generic request for service operations (up/down)
-message ServiceRequest {
-  string id = 1; // UUID of the service
+message StartInstancesRequest {
+  int32 count = 1;
+  string service_id = 2;
 }
 
-// Generic response for service operations (up/down)
-message ServiceResponse {
-  int32 status_code = 1; // Status code of the operation
-  string message = 2; // Additional message or error description
+message StartInstancesResponse {
+  repeated string instance_ids = 1; // Additional message or error description
+  bool success = 2;
+}
+
+message StopInstancesRequest {
+  repeated string instance_ids = 1;
+}
+
+message StopInstancesResponse {
+  bool success = 1;
 }
