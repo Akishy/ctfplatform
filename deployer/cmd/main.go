@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gitlab.crja72.ru/gospec/go4/ctfplatform/deployer/internal/cache"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/deployer/internal/config"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/deployer/internal/db"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/deployer/internal/logger"
@@ -16,7 +15,6 @@ func main() {
 		),
 		logger.Module,
 		db.Module,
-		cache.Module,
 		server.Module,
 	)
 	app.Run()
