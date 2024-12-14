@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS public.users (
+    id SERIAL PRIMARY KEY NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password BYTEA NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.teams (
+    id serial PRIMARY KEY NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    invite_link VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS public.team_roles (
+    id serial PRIMARY KEY NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE
+);

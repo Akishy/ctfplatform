@@ -6,6 +6,7 @@ import (
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/config"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/middlewares"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/service"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/transport/rest/handlers"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/pkg/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -16,10 +17,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type Services interface {
-	UserService
-}
-
 type Repository interface {
 	service.UserRepo
 	Close() error
@@ -27,10 +24,9 @@ type Repository interface {
 
 // Server структура сервера
 type Server struct {
-	handler  *echo.Echo
-	server   *http.Server
-	services Services
-	context  context.Context
+	handler *echo.Echo
+	server  *http.Server
+	context context.Context
 }
 
 // NewServer создает новый экземпляр сервера
@@ -54,17 +50,18 @@ func NewServer(ctx context.Context, config *config.Config, repo Repository) *Ser
 	}
 
 	jwtService := service.NewJwtService(config.SecretKey)
-	userService := service.NewUserService(repo, jwtService) // даун каст в подинтефейс (service.UserRepo, он в композиции основного)
+	userService := service.NewUserService(repo, jwtService) // даун каст repo в подинтефейс (service.UserRepo, он в композиции основного)
+	teamService := service.NewTeamService()
 
 	server := &Server{
-		handler:  e,
-		server:   srv,
-		services: userService,
-		context:  ctx,
+		handler: e,
+		server:  srv,
+		context: ctx,
 	}
 
 	// Настройка маршрутов перед стартом
-	server.RegisterRoutes()
+	services := handlers.NewServices(userService, teamService)
+	handlers.RegisterRoutes(ctx, e, services)
 
 	return server
 }

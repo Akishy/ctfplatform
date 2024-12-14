@@ -1,17 +1,24 @@
-package rest
+package handlers
 
 // структуры для незагрязнения основной сущности
 
-type registrationRequest struct {
+// User запросы
+
+type userRegistrationRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-type loginRequest struct {
+type userLoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-type loginResponse struct {
+type userLoginResponse struct {
 	JwtToken string `json:"jwt_token"`
+}
+
+// Team запросы
+type teamCreationRequest struct {
+	TeamName string `json:"team_name"`
 }

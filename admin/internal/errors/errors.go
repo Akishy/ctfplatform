@@ -3,6 +3,7 @@ package errors
 import "errors"
 
 var (
-	ErrUnknownUser     = errors.New("unregistered user")
-	ErrInvalidPassword = errors.New("invalid password")
+	ErrUserExists       = errors.New("user already exists")
+	ErrUnregisteredUser = errors.New("unregistered user")
+	ErrInvalidPassword  = errors.New("invalid password")
 )

@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"go.uber.org/zap/zapcore"
 
 	"go.uber.org/zap"
 )
@@ -41,8 +42,13 @@ func (l logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
 }
 
 func New(serviceName string) Logger {
-	zapLogger, _ := zap.NewProduction()
+	zapConfig := zap.NewProductionConfig()
+	zapConfig.EncoderConfig.TimeKey = "time"
+	zapConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	zapLogger, _ := zapConfig.Build()
 	defer zapLogger.Sync()
+
 	return &logger{
 		serviceName: serviceName,
 		logger:      zapLogger,

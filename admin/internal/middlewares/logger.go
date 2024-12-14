@@ -32,7 +32,6 @@ func LoggerMiddleware(l logger.Logger) echo.MiddlewareFunc {
 				zap.String("method", c.Request().Method),
 				zap.String("path", c.Path()),
 				zap.Duration("duration", duration),
-				zap.Int("status", c.Response().Status),
 			}
 
 			// Логируем ошибку, если она есть
@@ -43,7 +42,7 @@ func LoggerMiddleware(l logger.Logger) echo.MiddlewareFunc {
 				return err
 			}
 
-			l.Info(c.Request().Context(), "request completed", logFields...)
+			l.Info(c.Request().Context(), "request completed", append(logFields, zap.Int("status", c.Response().Status))...)
 
 			return nil
 		}

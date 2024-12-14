@@ -18,16 +18,12 @@ type JwtService struct {
 	secretKey []byte
 }
 
-// стоит переписать на проброс конфига?
 func NewJwtService(secretKey string) *JwtService {
 	return &JwtService{secretKey: []byte(secretKey)}
 }
 
 // generateJWTToken создает JWT-токен для пользователя
 func (s *JwtService) generateJWTToken(user *entities.User) (string, error) {
-	// Получаем секретный ключ из переменных окружения
-	// ВАЖНО: В реальном проекте храните секретный ключ безопасно!
-	secretKey := s.secretKey // пробросить колюч
 
 	// Устанавливаем время жизни токена
 	expirationTime := time.Now().Add(24 * time.Hour) // Токен действителен 24 часа
@@ -52,7 +48,7 @@ func (s *JwtService) generateJWTToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// Подписываем токен секретным ключом
-	tokenString, err := token.SignedString(secretKey)
+	tokenString, err := token.SignedString(s.secretKey)
 	if err != nil {
 		return "", err
 	}

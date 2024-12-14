@@ -10,6 +10,7 @@ import (
 type UserRepo interface {
 	CreateUser(ctx context.Context, user *entities.User) error
 	FindUserByUsername(ctx context.Context, username string) (*entities.User, error)
+	IsUserExistsByUsername(ctx context.Context, username string) (bool, error)
 }
 
 type UserService struct {
@@ -24,8 +25,17 @@ func NewUserService(repo UserRepo, jwtService *JwtService) *UserService {
 	}
 }
 
-func (s *UserService) RegistrationUser(ctx context.Context, user *entities.User) error {
-	err := user.SetHashedPassword()
+func (s *UserService) RegistrateUser(ctx context.Context, user *entities.User) error {
+	isExists, err := s.repo.IsUserExistsByUsername(ctx, user.Username)
+	if err != nil {
+		return fmt.Errorf("failed to find user: %w", err)
+	}
+
+	if isExists {
+		return errors.ErrUserExists
+	}
+
+	err = user.SetHashedPassword()
 	if err != nil {
 		return fmt.Errorf("cannot set hashed password: %w", err)
 	}
@@ -38,10 +48,19 @@ func (s *UserService) RegistrationUser(ctx context.Context, user *entities.User)
 }
 
 func (s *UserService) LoginUser(ctx context.Context, user *entities.User) (string, error) {
+	isExists, err := s.repo.IsUserExistsByUsername(ctx, user.Username)
+	if err != nil {
+		return "", fmt.Errorf("failed to find user: %w", err)
+	}
+
+	if !isExists {
+		return "", errors.ErrUnregisteredUser
+	}
+
 	// Проверка пользователя в базе данных
 	existingUser, err := s.repo.FindUserByUsername(ctx, user.Username)
 	if err != nil {
-		return "", errors.ErrUnknownUser
+		return "", err
 	}
 
 	// Проверка пароля
