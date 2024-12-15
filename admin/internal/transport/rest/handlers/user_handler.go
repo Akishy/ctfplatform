@@ -28,8 +28,8 @@ func NewUserEndpoints(ctx context.Context, service UserService) *UserEndpoints {
 	}
 }
 
-// registrationHandler обрабатывает регистрацию пользователя
-func (e *UserEndpoints) registrationHandler(c echo.Context) error {
+// RegistrationHandler обрабатывает регистрацию пользователя
+func (e *UserEndpoints) RegistrationHandler(c echo.Context) error {
 	l := logger.GetLoggerFromCtx(e.context)
 
 	// Создаем структуру для привязки входящих данных
@@ -41,7 +41,7 @@ func (e *UserEndpoints) registrationHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid user data")
 	}
 
-	// Валидация данных (можно добавить дополнительную проверку)
+	// Валидация данных
 	if request.Username == "" || request.Password == "" {
 		l.Error(e.context, "username or password is empty")
 		return echo.NewHTTPError(http.StatusBadRequest, "username and password are required")

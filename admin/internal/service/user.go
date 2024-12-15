@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/entities"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/errors"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/jwtutils"
 )
 
 type UserRepo interface {
@@ -15,10 +16,10 @@ type UserRepo interface {
 
 type UserService struct {
 	repo       UserRepo
-	jwtService *JwtService
+	jwtService *jwtutils.JwtUtils
 }
 
-func NewUserService(repo UserRepo, jwtService *JwtService) *UserService {
+func NewUserService(repo UserRepo, jwtService *jwtutils.JwtUtils) *UserService {
 	return &UserService{
 		repo:       repo,
 		jwtService: jwtService,
@@ -69,7 +70,7 @@ func (s *UserService) LoginUser(ctx context.Context, user *entities.User) (strin
 	}
 
 	// Генерация JWT-токена
-	token, err := s.jwtService.generateJWTToken(existingUser)
+	token, err := s.jwtService.GenerateJWTToken(existingUser.ID, existingUser.Username)
 	if err != nil {
 		return "", err
 	}

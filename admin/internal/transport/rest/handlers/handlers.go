@@ -17,11 +17,27 @@ func NewServices(userService UserService, teamService TeamService) *Services {
 	}
 }
 
-func RegisterRoutes(ctx context.Context, handler *echo.Echo, service *Services) {
+func RegisterRoutes(ctx context.Context, handler *echo.Echo, authMiddleware echo.MiddlewareFunc, service *Services) {
+	// User
 	api := handler.Group("/api")
 
+	userApi := api.Group("/user")
 	userEndpoints := NewUserEndpoints(ctx, service)
 
-	api.POST("/register", userEndpoints.registrationHandler)
-	api.POST("/login", userEndpoints.loginHandler)
+	userApi.POST("/signup", userEndpoints.RegistrationHandler)
+	userApi.POST("/login", userEndpoints.loginHandler)
+
+	// Team - don't finished
+	//teamApi := api.Group("/teams")
+	//teamApi.Use(authMiddleware)
+	//teamEndpoints := NewTeamEndpoints(ctx, service)
+	//
+	//teamApi.POST("", teamEndpoints.registrationHandler)
+	//teamApi.GET("", teamEndpoints.getTeamsHandler)
+	//teamApi.GET("/:team_id/invite", teamEndpoints.getInviteLinkHandler)
+	//teamApi.POST("/:team_id/join/:invite_key", teamEndpoints.addMemberHandler)
+	//teamApi.POST("/:team_id/leave", teamEndpoints.leaveTeamHandler)
+	//teamApi.POST("/:team_id/kick", teamEndpoints.kickMemberHandler)
+	//teamApi.DELETE("/:team_id", teamEndpoints.deleteTeamHandler)
+	//teamApi.PATCH("/:team_id", teamEndpoints.editTeamHandler)
 }

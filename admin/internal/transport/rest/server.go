@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/config"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/jwtutils"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/middlewares"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/service"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/transport/rest/handlers"
@@ -49,21 +50,21 @@ func NewServer(ctx context.Context, config *config.Config, repo Repository) *Ser
 		IdleTimeout:  120 * time.Second,
 	}
 
-	jwtService := service.NewJwtService(config.SecretKey)
-	userService := service.NewUserService(repo, jwtService) // даун каст repo в подинтефейс (service.UserRepo, он в композиции основного)
-	teamService := service.NewTeamService()
+	jwtUtils := jwtutils.NewJwtUtils(config.SecretKey, "ctf-platform")
+	authMiddleware := middlewares.JWTMiddleware(ctx, jwtUtils)
 
-	server := &Server{
+	userService := service.NewUserService(repo, jwtUtils) // даун каст repo в подинтефейс (service.UserRepo, он в композиции основного)
+	teamService := service.NewTeamService(repo)
+
+	// Настройка маршрутов перед стартом
+	services := handlers.NewServices(userService, teamService)
+	handlers.RegisterRoutes(ctx, e, authMiddleware, services)
+
+	return &Server{
 		handler: e,
 		server:  srv,
 		context: ctx,
 	}
-
-	// Настройка маршрутов перед стартом
-	services := handlers.NewServices(userService, teamService)
-	handlers.RegisterRoutes(ctx, e, services)
-
-	return server
 }
 
 // Start запускает сервер

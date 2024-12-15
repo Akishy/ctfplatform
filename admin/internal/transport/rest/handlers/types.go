@@ -19,6 +19,6 @@ type userLoginResponse struct {
 }
 
 // Team запросы
-type teamCreationRequest struct {
+type teamRegistrationRequest struct {
 	TeamName string `json:"team_name"`
 }
