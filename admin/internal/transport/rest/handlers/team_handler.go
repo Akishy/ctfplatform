@@ -10,7 +10,11 @@ import (
 )
 
 type TeamService interface {
-	RegistrateTeam(ctx context.Context, teamName string, ownerId int64) error
+	createTeam(ctx context.Context, teamName string, ownerId int64) error
+	deleteTeam(ctx context.Context, teamId string) error
+	addMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
+	deleteMember(ctx context.Context, teamId string, userId string) error
+	IsTeamExistsByName(ctx context.Context, name string) (bool, error)
 }
 
 type TeamEndpoints struct {
@@ -25,7 +29,7 @@ func NewTeamEndpoints(ctx context.Context, service TeamService) *TeamEndpoints {
 	}
 }
 
-func (e *TeamEndpoints) registrationHandler(c echo.Context) error {
+func (e *TeamEndpoints) createTeamHandler(c echo.Context) error {
 	// на этом уровне не может быть ошибки кастинга
 	userid, _ := c.Get(jwtutils.UsernameKey).(int64)
 
@@ -47,7 +51,7 @@ func (e *TeamEndpoints) registrationHandler(c echo.Context) error {
 	}
 
 	// Вызываем метод регистрации сервиса
-	err := e.service.RegistrateTeam(e.context, request.TeamName, userid)
+	err := e.service.createTeam(e.context, request.TeamName, userid)
 	if err != nil {
 		// обработка ошибок сервиса
 		//...

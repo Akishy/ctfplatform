@@ -19,9 +19,7 @@ func NewServices(userService UserService, teamService TeamService) *Services {
 
 func RegisterRoutes(ctx context.Context, handler *echo.Echo, authMiddleware echo.MiddlewareFunc, service *Services) {
 	// User
-	api := handler.Group("/api")
-
-	userApi := api.Group("/user")
+	userApi := handler.Group("/user")
 	userEndpoints := NewUserEndpoints(ctx, service)
 
 	userApi.POST("/signup", userEndpoints.RegistrationHandler)

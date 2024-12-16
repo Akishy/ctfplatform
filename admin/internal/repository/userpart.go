@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/google/uuid"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/entities"
 )
 
@@ -20,10 +21,24 @@ func (r *Repository) IsUserExistsByUsername(ctx context.Context, username string
 	return exists, nil
 }
 
-func (r *Repository) CreateUser(ctx context.Context, user *entities.User) error {
-	query := `INSERT INTO public.users (username, password) VALUES ($1, $2)`
+func (r *Repository) IsUserExistsById(ctx context.Context, id int64) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)`
 
-	_, err := r.db.ExecContext(ctx, query, user.Username, user.Password)
+	var exists bool
+	err := r.db.GetContext(ctx, &exists, query, id)
+
+	if err != nil {
+		return false, fmt.Errorf("failed to check user existence: %w", err)
+	}
+
+	return exists, nil
+}
+
+func (r *Repository) CreateUser(ctx context.Context, user *entities.User) error {
+	userId := uuid.New().String()
+	query := `INSERT INTO public.users (user_id, username, password) VALUES ($1, $2, $3)`
+
+	_, err := r.db.ExecContext(ctx, query, userId, user.Username, user.Password)
 	if err != nil {
 		err = fmt.Errorf("failed to create user: %w", err)
 		return err
