@@ -15,11 +15,10 @@ service ServiceDeployer {
 
   rpc PingInstance (PingInstanceRequest) returns (InstanceInfo);
 
-  // Start a service by its ID
-  rpc StartInstances (StartInstancesRequest) returns (StartInstancesResponse);
-
   // Stop a service by its ID
   rpc StopInstances (StopInstancesRequest) returns (StopInstancesResponse);
+
+  rpc CreateInstance (createInstanceRequest) returns (createInstanceResponse);
 }
 
 // Request to create a new service
@@ -50,19 +49,20 @@ message PingInstanceRequest {
 message InstanceInfo {
   int32 status_code = 1; // Status code of the operation
   string message = 2; // Status message or additional information
-  int32 ssh_port = 3;
-  int32 web_port = 4;
-  string ip = 5;
-  string instance_id = 6; // UUID of the instance
+  int32 web_port = 3;
+  string ip = 4;
+  string instance_id = 5; // UUID of the instance
+  int32 last_check = 6; // Timestamp of the last check
 }
 
-message StartInstancesRequest {
-  int32 count = 1;
-  string service_id = 2;
+message createInstanceRequest {
+  string service_id = 1;
+  string ip = 2;
+  int32 web_port = 3;
 }
 
-message StartInstancesResponse {
-  repeated string instance_ids = 1; // Additional message or error description
+message createInstanceResponse {
+  string instance_id = 1;
   bool success = 2;
 }
 
