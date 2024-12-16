@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/models"
 )
 
 type TeamRepo interface {
@@ -10,6 +11,8 @@ type TeamRepo interface {
 	addMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
 	deleteMember(ctx context.Context, teamId string, userId string) error
 	IsTeamExistsByName(ctx context.Context, name string) (bool, error)
+	getTeamMembers(ctx context.Context, teamId string) ([]models.User, error)
+	GetTeams(ctx context.Context) ([]models.Team, error)
 }
 
 type TeamService struct {
@@ -57,4 +60,20 @@ func (s *TeamService) IsTeamExistsByName(ctx context.Context, name string) (bool
 		return false, err
 	}
 	return exists, nil
+}
+
+func (s *TeamService) GetTeams(ctx context.Context) ([]models.Team, error) {
+	teams, err := s.repo.GetTeams(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return teams, nil
+}
+
+func (s *TeamService) GetTeamMembers(ctx context.Context, teamId string) ([]models.User, error) {
+	members, err := s.repo.getTeamMembers(ctx, teamId)
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
 }

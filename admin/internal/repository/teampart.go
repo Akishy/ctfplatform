@@ -59,7 +59,7 @@ func (r *Repository) IsTeamExistsByName(ctx context.Context, name string) (bool,
 	return exists, nil
 }
 
-func getTeamMembers(ctx context.Context, r *Repository, teamId string) ([]models.User, error) {
+func (r *Repository) getTeamMembers(ctx context.Context, teamId string) ([]models.User, error) {
 	query := `SELECT user_id, username FROM public.teams_members WHERE team_id = $1`
 	var members []models.User
 	err := r.db.SelectContext(ctx, &members, query, teamId)
@@ -77,7 +77,7 @@ func (r *Repository) GetTeams(ctx context.Context) ([]models.Team, error) {
 		return nil, fmt.Errorf("failed to get teams: %w", err)
 	}
 	for i := range teams {
-		members, err := getTeamMembers(ctx, r, teams[i].TeamId)
+		members, err := r.getTeamMembers(ctx, teams[i].TeamId)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get team members: %w", err)
 		}

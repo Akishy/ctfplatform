@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/labstack/echo/v4"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/jwtutils"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/models"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/pkg/logger"
 	"go.uber.org/zap"
 	"net/http"
@@ -15,6 +16,8 @@ type TeamService interface {
 	addMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
 	deleteMember(ctx context.Context, teamId string, userId string) error
 	IsTeamExistsByName(ctx context.Context, name string) (bool, error)
+	GetTeams(ctx context.Context) ([]models.Team, error)
+	GetTeamMembers(ctx context.Context, teamId string) ([]models.User, error)
 }
 
 type TeamEndpoints struct {
@@ -94,11 +97,6 @@ func (e *TeamEndpoints) kickMemberHandler(c echo.Context) error {
 }
 
 func (e *TeamEndpoints) deleteTeamHandler(c echo.Context) error {
-	c.Param("team_id")
-	panic("implement me")
-}
-
-func (e *TeamEndpoints) editTeamHandler(c echo.Context) error {
 	c.Param("team_id")
 	panic("implement me")
 }
