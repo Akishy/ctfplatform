@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.12.4
-// source: deployer.proto
+// source: checker.proto
 
 package proto
 
@@ -279,5 +279,5 @@ var ServiceDeployer_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "deployer.proto",
+	Metadata: "checker.proto",
 }
