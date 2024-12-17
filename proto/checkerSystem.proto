@@ -5,7 +5,7 @@ package CheckerSystem;
 option go_package = "deployer/pkg/proto";
 
 // Service definition for orchestrating services
-service CheckerDeployer {
+service CheckerSystem {
 
   // Create a new service from a folder of files
   rpc CreateChecker (RegisterCheckerRequest) returns (RegisterCheckerResponse);
