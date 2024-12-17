@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	api "gitlab.crja72.ru/gospec/go4/ctfplatform/checker/pkg/api/v1"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"log"
@@ -15,7 +16,7 @@ type Server struct {
 	listener   net.Listener
 }
 
-func New(ctx context.Context, port int) (*Server, error) {
+func New(ctx context.Context, port int, logger *zap.Logger) (*Server, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

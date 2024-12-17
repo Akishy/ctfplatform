@@ -1,5 +1,7 @@
 package models
 
 type Checker struct {
-	Name string
+	Name    string
+	Ip      string
+	WebPort int
 }
