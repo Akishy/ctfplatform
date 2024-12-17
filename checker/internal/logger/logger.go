@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var Module fx.Option = fx.Module("logger", fx.Provide(NewLogger), fx.Invoke(func(*zap.Logger) {}))
+var FxOption fx.Option = fx.Options(fx.Provide(NewLogger), fx.Invoke(func(*zap.Logger) {}))
 
 func NewLogger() (*zap.Logger, error) {
 	loggerOutput, err := setLoggerOutput()
