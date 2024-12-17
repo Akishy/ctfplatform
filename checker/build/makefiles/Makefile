@@ -1,5 +1,5 @@
 # Определение переменных
-PROTO_SRC = ../proto/checker.proto
+PROTO_SRC = ../proto/checkerSystem.proto
 PROTO_DIR = ../proto
 OUT_DIR = pkg/api/v1
 

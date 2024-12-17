@@ -17,7 +17,7 @@ var ServerFxOption fx.Option = fx.Options(fx.Provide(New), fx.Invoke(func(*Serve
 
 func New(logger *zap.Logger, checkerService *CheckerService) *Server {
 	grpcServer := grpc.NewServer()
-	api.RegisterServiceDeployerServer(grpcServer, checkerService)
+	api.RegisterCheckerSystemServer(grpcServer, checkerService)
 
 	return &Server{grpcServer, logger}
 }

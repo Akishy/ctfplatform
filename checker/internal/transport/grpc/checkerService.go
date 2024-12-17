@@ -6,7 +6,7 @@ import (
 )
 
 type CheckerService struct {
-	proto.UnimplementedServiceDeployerServer
+	proto.UnimplementedCheckerSystemServer
 	checkerService *checkerService2.Service
 }
 

@@ -1,52 +1,52 @@
 syntax = "proto3";
 
-package deployer;
+package CheckerSystem;
 
 option go_package = "deployer/pkg/proto";
 
 // Service definition for orchestrating services
-service ServiceDeployer {
+service CheckerDeployer {
 
   // Create a new service from a folder of files
-  rpc CreateService (RegisterServiceRequest) returns (RegisterServiceResponse);
+  rpc CreateChecker (RegisterCheckerRequest) returns (RegisterCheckerResponse);
 
   // Check the status of a service by its ID
-  rpc PingService (PingServiceRequest) returns (PingServiceResponse);
+  rpc PingChecker (PingCheckerRequest) returns (PingCheckerResponse);
 
-  rpc PingInstance (PingInstanceRequest) returns (InstanceInfo);
+  rpc CreateVulnService (CreateVulnServiceRequest) returns (CreateVulnServiceResponse);
 
   // Stop a service by its ID
-  rpc StopInstances (StopInstancesRequest) returns (StopInstancesResponse);
+  rpc StopVulnServices (StopVulnServicesRequest) returns (StopVulnServicesResponse);
 
-  rpc CreateInstance (createInstanceRequest) returns (createInstanceResponse);
+  rpc PingVulnService (PingVulnServiceRequest) returns (VulnServiceInfo);
+
+
+
+
 }
 
 // Request to create a new service
-message RegisterServiceRequest {
+message RegisterCheckerRequest {
   string code_archive = 1;
 }
 
 // Response after creating a service
-message RegisterServiceResponse {
+message RegisterCheckerResponse {
   string id = 1; // UUID of the created service
 }
 
 // Request to check the status of a service
-message PingServiceRequest {
+message PingCheckerRequest {
   string id = 1; // UUID of the service
 }
 
 // Response for the Ping endpoint
-message PingServiceResponse {
+message PingCheckerResponse {
   string message = 1; // Status message or additional information
-  repeated InstanceInfo instances = 2;
+  repeated VulnServiceInfo instances = 2;
 }
 
-message PingInstanceRequest {
-  string instance_id = 1; // UUID of the instance
-}
-
-message InstanceInfo {
+message VulnServiceInfo {
   int32 status_code = 1; // Status code of the operation
   string message = 2; // Status message or additional information
   int32 web_port = 3;
@@ -55,21 +55,26 @@ message InstanceInfo {
   int32 last_check = 6; // Timestamp of the last check
 }
 
-message createInstanceRequest {
+message PingVulnServiceRequest { // response is VulnServiceInfo ^
+  string instance_id = 1; // UUID of the instance
+}
+
+
+message CreateVulnServiceRequest {
   string service_id = 1;
   string ip = 2;
   int32 web_port = 3;
 }
 
-message createInstanceResponse {
+message CreateVulnServiceResponse {
   string instance_id = 1;
   bool success = 2;
 }
 
-message StopInstancesRequest {
+message StopVulnServicesRequest {
   repeated string instance_ids = 1;
 }
 
-message StopInstancesResponse {
+message StopVulnServicesResponse {
   bool success = 1;
 }
