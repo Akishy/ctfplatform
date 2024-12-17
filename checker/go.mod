@@ -3,6 +3,8 @@ module gitlab.crja72.ru/gospec/go4/ctfplatform/checker
 go 1.23.1
 
 require (
+	github.com/google/uuid v1.6.0
+	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/spf13/viper v1.19.0
 	go.uber.org/fx v1.23.0

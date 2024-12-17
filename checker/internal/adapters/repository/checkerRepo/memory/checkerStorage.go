@@ -6,21 +6,19 @@ import (
 	"sync"
 )
 
-type Storage struct {
+type CheckerStorage struct {
 	checkersData map[uuid.UUID]*models.Checker
-	servicesData map[uuid.UUID]interface{} // edit!!!
 	mu           sync.Mutex
 }
 
-func New() *Storage {
-	return &Storage{
+func NewCheckerStorage() *CheckerStorage {
+	return &CheckerStorage{
 		checkersData: make(map[uuid.UUID]*models.Checker),
-		servicesData: make(map[uuid.UUID]interface{}),
 		mu:           sync.Mutex{},
 	}
 }
 
-func (storage *Storage) CreateChecker(checker *models.Checker) error {
+func (storage *CheckerStorage) CreateChecker(checker *models.Checker) error {
 	storage.mu.Lock()
 	defer storage.mu.Unlock()
 	id := uuid.New()
