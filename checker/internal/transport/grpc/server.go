@@ -1,49 +1,35 @@
 package grpc
 
 import (
-	"context"
-	"fmt"
 	api "gitlab.crja72.ru/gospec/go4/ctfplatform/checker/pkg/api/v1"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 )
 
 type Server struct {
 	grpcServer *grpc.Server
-	listener   net.Listener
+	logger     *zap.Logger
 }
 
-func New(ctx context.Context, port int, logger *zap.Logger) (*Server, error) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+var ServerFxOption fx.Option = fx.Options(fx.Provide(New), fx.Invoke(func(*Server) {}))
 
+func New(logger *zap.Logger, checkerService *CheckerService) *Server {
 	grpcServer := grpc.NewServer()
-	api.RegisterServiceDeployerServer(grpcServer, nil) // edit!!!
+	api.RegisterServiceDeployerServer(grpcServer, checkerService)
 
-	return &Server{grpcServer, lis}, nil
+	return &Server{grpcServer, logger}
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	eg := errgroup.Group{}
-
-	eg.Go(func() error {
-		// logger.GetLoggerFromCtx(ctx).Info(ctx, "starting gRPC server", zap.Int("port", s.listener.Addr().(*net.TCPAddr).Port))
-		return s.grpcServer.Serve(s.listener)
-	})
-
-	return eg.Wait()
+func (s *Server) Start() error {
+	lis, err := net.Listen("tcp", ":4000")
+	if err != nil {
+		s.logger.Error("grpc server initialization failed", zap.Error(err))
+	}
+	return s.grpcServer.Serve(lis)
 }
 
-func (s *Server) Stop(ctx context.Context) {
-
+func (s *Server) Stop() {
 	s.grpcServer.GracefulStop()
-	//l := logger.GetLoggerFromCtx(ctx)
-	//if l != nil {
-	//	l.Info(ctx, "gRPC server stopped")
-	//}
 }
