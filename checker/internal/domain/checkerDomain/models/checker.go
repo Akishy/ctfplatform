@@ -1,5 +1,9 @@
 package models
 
+import "github.com/google/uuid"
+
 type Checker struct {
-	Name string
+	UUID    uuid.UUID
+	Ip      string
+	WebPort int
 }

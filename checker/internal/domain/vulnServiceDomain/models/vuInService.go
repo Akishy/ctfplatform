@@ -2,7 +2,8 @@ package models
 
 import "github.com/google/uuid"
 
-type VuInServiceInstance struct {
+// конкретный сервис участиков
+type VulnService struct {
 	Uuid          uuid.UUID
 	Ip            string
 	WebPort       int

@@ -2,7 +2,8 @@ package models
 
 import "github.com/google/uuid"
 
-type VuInService struct {
+// образ уязвимого сервиса
+type VulnServiceImg struct {
 	Uuid        uuid.UUID
 	CodeArchive string
 }
