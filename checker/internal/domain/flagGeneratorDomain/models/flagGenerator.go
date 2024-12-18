@@ -3,5 +3,6 @@ package models
 import "go.uber.org/zap"
 
 type FlagGenerator struct {
-	logger *zap.Logger
+	Logger     *zap.Logger
+	FlagFormat string
 }
