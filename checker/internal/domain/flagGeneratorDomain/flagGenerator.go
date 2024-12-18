@@ -1,8 +1,6 @@
 package flagGeneratorDomain
 
-import "go.uber.org/zap"
-
+// Удалим???)
 type FlagGenerator struct {
-	Logger     *zap.Logger
 	FlagFormat string
 }
