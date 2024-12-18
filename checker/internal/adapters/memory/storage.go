@@ -10,9 +10,10 @@ import (
 )
 
 type Storage struct {
-	vulnServicesData map[uuid.UUID]*models.VulnService
-	checkersData     map[uuid.UUID]*models2.Checker
-	mu               sync.RWMutex
+	vulnServicesData           map[uuid.UUID]*models.VulnService
+	checkersData               map[uuid.UUID]*models2.Checker
+	requestsToVulnServicesData map[uuid.UUID]*models.RequestToVulnService
+	mu                         sync.RWMutex
 }
 
 func NewStorage() *Storage {
@@ -46,8 +47,8 @@ func (s *Storage) GetVulnServiceList(checkerUUID uuid.UUID) ([]*models.VulnServi
 }
 
 func (s *Storage) CreateVulnService(vulnService *models.VulnService) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if _, ok := s.vulnServicesData[vulnService.Uuid]; ok {
 		return errors.New(fmt.Sprintf("vulnService [%v] already exists", vulnService.Uuid.String()))
 	}
@@ -56,8 +57,8 @@ func (s *Storage) CreateVulnService(vulnService *models.VulnService) error {
 }
 
 func (s *Storage) UpdateVulnService(vulnService *models.VulnService) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if _, ok := s.vulnServicesData[vulnService.Uuid]; !ok {
 		return errors.New(fmt.Sprintf("vulnService [%v] not found", vulnService.Uuid.String()))
 	}
@@ -65,3 +66,23 @@ func (s *Storage) UpdateVulnService(vulnService *models.VulnService) error {
 	s.vulnServicesData[vulnService.Uuid] = vulnService
 	return nil
 }
+
+// хз в какой интерфейс, скорее всего VulnService
+func (s *Storage) CreateRequestToVulnService(requestUUID, vulnServiceUUID uuid.UUID) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if _, ok := s.requestsToVulnServicesData[requestUUID]; ok {
+		return errors.New(fmt.Sprintf("vulnService [%v] already exists", vulnServiceUUID.String()))
+	}
+	s.requestsToVulnServicesData[requestUUID] = &models.RequestToVulnService{
+		Uuid:          requestUUID,
+		VulnServiceId: vulnServiceUUID,
+	}
+	return nil
+}
+
+// not implemented
+//func (s *Storage) CreateChecker(checker *models2.Checker) error        { return nil }
+//func (s *Storage) UpdateChecker(checker *models2.Checker) error        { return nil }
+//func (s *Storage) GetChecker(UUID uuid.UUID) (*models2.Checker, error) { return nil, nil }
