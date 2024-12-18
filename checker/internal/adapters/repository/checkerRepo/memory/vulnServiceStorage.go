@@ -22,3 +22,7 @@ func NewVulnServiceStorage() *VulnServiceStorage {
 func (s *VulnServiceStorage) Add(serviceInstance *models.VulnService) {
 
 }
+
+func (s *VulnServiceStorage) GetList(checkerID uuid.UUID) ([]*models.VulnService, error) {
+	
+}

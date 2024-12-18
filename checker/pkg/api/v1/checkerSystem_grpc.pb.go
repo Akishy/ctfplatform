@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CheckerSystem_CreateChecker_FullMethodName     = "/CheckerSystem.CheckerSystem/CreateChecker"
+	CheckerSystem_RegisterChecker_FullMethodName   = "/CheckerSystem.CheckerSystem/RegisterChecker"
 	CheckerSystem_PingChecker_FullMethodName       = "/CheckerSystem.CheckerSystem/PingChecker"
 	CheckerSystem_CreateVulnService_FullMethodName = "/CheckerSystem.CheckerSystem/CreateVulnService"
 	CheckerSystem_StopVulnServices_FullMethodName  = "/CheckerSystem.CheckerSystem/StopVulnServices"
@@ -30,14 +30,14 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Service definition for orchestrating services
+// Service definition for orchestrating Checkers
 type CheckerSystemClient interface {
-	// Create a new service from a folder of files
-	CreateChecker(ctx context.Context, in *RegisterCheckerRequest, opts ...grpc.CallOption) (*RegisterCheckerResponse, error)
-	// Check the status of a service by its ID
+	// Register a new (checker) from a folder of files
+	RegisterChecker(ctx context.Context, in *RegisterCheckerRequest, opts ...grpc.CallOption) (*RegisterCheckerResponse, error)
+	// Check the status of a checker by its ID
 	PingChecker(ctx context.Context, in *PingCheckerRequest, opts ...grpc.CallOption) (*PingCheckerResponse, error)
 	CreateVulnService(ctx context.Context, in *CreateVulnServiceRequest, opts ...grpc.CallOption) (*CreateVulnServiceResponse, error)
-	// Stop a service by its ID
+	// Stop a checker by its ID
 	StopVulnServices(ctx context.Context, in *StopVulnServicesRequest, opts ...grpc.CallOption) (*StopVulnServicesResponse, error)
 	PingVulnService(ctx context.Context, in *PingVulnServiceRequest, opts ...grpc.CallOption) (*VulnServiceInfo, error)
 }
@@ -50,10 +50,10 @@ func NewCheckerSystemClient(cc grpc.ClientConnInterface) CheckerSystemClient {
 	return &checkerSystemClient{cc}
 }
 
-func (c *checkerSystemClient) CreateChecker(ctx context.Context, in *RegisterCheckerRequest, opts ...grpc.CallOption) (*RegisterCheckerResponse, error) {
+func (c *checkerSystemClient) RegisterChecker(ctx context.Context, in *RegisterCheckerRequest, opts ...grpc.CallOption) (*RegisterCheckerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RegisterCheckerResponse)
-	err := c.cc.Invoke(ctx, CheckerSystem_CreateChecker_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CheckerSystem_RegisterChecker_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,14 +104,14 @@ func (c *checkerSystemClient) PingVulnService(ctx context.Context, in *PingVulnS
 // All implementations must embed UnimplementedCheckerSystemServer
 // for forward compatibility.
 //
-// Service definition for orchestrating services
+// Service definition for orchestrating Checkers
 type CheckerSystemServer interface {
-	// Create a new service from a folder of files
-	CreateChecker(context.Context, *RegisterCheckerRequest) (*RegisterCheckerResponse, error)
-	// Check the status of a service by its ID
+	// Register a new (checker) from a folder of files
+	RegisterChecker(context.Context, *RegisterCheckerRequest) (*RegisterCheckerResponse, error)
+	// Check the status of a checker by its ID
 	PingChecker(context.Context, *PingCheckerRequest) (*PingCheckerResponse, error)
 	CreateVulnService(context.Context, *CreateVulnServiceRequest) (*CreateVulnServiceResponse, error)
-	// Stop a service by its ID
+	// Stop a checker by its ID
 	StopVulnServices(context.Context, *StopVulnServicesRequest) (*StopVulnServicesResponse, error)
 	PingVulnService(context.Context, *PingVulnServiceRequest) (*VulnServiceInfo, error)
 	mustEmbedUnimplementedCheckerSystemServer()
@@ -124,8 +124,8 @@ type CheckerSystemServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCheckerSystemServer struct{}
 
-func (UnimplementedCheckerSystemServer) CreateChecker(context.Context, *RegisterCheckerRequest) (*RegisterCheckerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateChecker not implemented")
+func (UnimplementedCheckerSystemServer) RegisterChecker(context.Context, *RegisterCheckerRequest) (*RegisterCheckerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterChecker not implemented")
 }
 func (UnimplementedCheckerSystemServer) PingChecker(context.Context, *PingCheckerRequest) (*PingCheckerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PingChecker not implemented")
@@ -160,20 +160,20 @@ func RegisterCheckerSystemServer(s grpc.ServiceRegistrar, srv CheckerSystemServe
 	s.RegisterService(&CheckerSystem_ServiceDesc, srv)
 }
 
-func _CheckerSystem_CreateChecker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CheckerSystem_RegisterChecker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterCheckerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CheckerSystemServer).CreateChecker(ctx, in)
+		return srv.(CheckerSystemServer).RegisterChecker(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CheckerSystem_CreateChecker_FullMethodName,
+		FullMethod: CheckerSystem_RegisterChecker_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CheckerSystemServer).CreateChecker(ctx, req.(*RegisterCheckerRequest))
+		return srv.(CheckerSystemServer).RegisterChecker(ctx, req.(*RegisterCheckerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -258,8 +258,8 @@ var CheckerSystem_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CheckerSystemServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateChecker",
-			Handler:    _CheckerSystem_CreateChecker_Handler,
+			MethodName: "RegisterChecker",
+			Handler:    _CheckerSystem_RegisterChecker_Handler,
 		},
 		{
 			MethodName: "PingChecker",
