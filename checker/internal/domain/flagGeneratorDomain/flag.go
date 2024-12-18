@@ -1,4 +1,4 @@
-package models
+package flagGeneratorDomain
 
 import "github.com/google/uuid"
 
@@ -10,6 +10,7 @@ const (
 )
 
 type Flag struct {
-	Flag   uuid.UUID
+	UUID   uuid.UUID // id флага
+	Flag   uuid.UUID // содержимое флага
 	Status FlagStatus
 }

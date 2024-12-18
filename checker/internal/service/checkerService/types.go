@@ -10,5 +10,5 @@ type checkRequest struct {
 }
 
 type checkResponse struct {
-	StartChecking bool `json:"start_checking"`
+	IsTaskAccepted bool `json:"is_task_accepted"`
 }

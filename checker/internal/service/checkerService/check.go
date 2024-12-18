@@ -3,6 +3,7 @@ package checkerService
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"net/http"
@@ -22,9 +23,11 @@ func (s *Service) Check(checkerUUID uuid.UUID) error {
 	}
 
 	client := http.Client{
-		Timeout: time.Second * 3,
+		Timeout: time.Second * 3, // задать глобальную переменную defaultTimeout
 	}
 	wg := &sync.WaitGroup{}
+
+	errCh := make(chan error) // implement errgroup
 
 	for _, vulnService := range vulnServices {
 		// а потом чекер будет отправлять результат по ручке /checker/sendVulnServiceStatus
@@ -32,45 +35,52 @@ func (s *Service) Check(checkerUUID uuid.UUID) error {
 			wg.Add(1)
 			defer wg.Done()
 			reqUuid := uuid.New()
+			flag := s.flagGenerator.Generate()
 
 			request := checkRequest{
 				RequestUUID:     reqUuid,
 				VulnServiceIP:   vulnService.Ip,
 				VulnServicePort: vulnService.WebPort,
-				Flag:            "testFlag",
+				Flag:            flag.Flag.String(),
 			}
 
 			bytesBody, err := json.Marshal(request)
 			if err != nil {
-				//
-				// Что делать при ошибке?
-				//
+				errCh <- err
+				return
 			}
 			reqBody := bytes.NewReader(bytesBody)
 
 			resp, err := client.Post(fmt.Sprintf("http://%v:%v/checkVulnService", checker.Ip, checker.WebPort), "application/json", reqBody)
 			if err != nil {
-				//
-				// Что делать при ошибке?
-				//
+				errCh <- err
+				return
 			}
 
 			var response checkResponse
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			if err != nil {
-				//
-				// Что делать при ошибке?
-				//
+				errCh <- err
+				return
+			}
+			if !response.IsTaskAccepted {
+				errCh <- errors.New("task was not accepted by checker")
 			}
 
+			if s.repo.CreateRequestToVulnService(request.RequestUUID, vulnService.Uuid) != nil {
+				errCh <- err
+				return
+			}
+
+			if s.repo.CreateFlag(flag) != nil {
+				errCh <- err
+				return
+			}
 		}()
 
 	}
 	defer wg.Wait()
-
-	//
-	//...
-	//
-
-	return nil
+	// select
+	fnError := <-errCh
+	return fnError
 }

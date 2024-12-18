@@ -1,4 +1,4 @@
-package models
+package checkerDomain
 
 import (
 	"github.com/google/uuid"

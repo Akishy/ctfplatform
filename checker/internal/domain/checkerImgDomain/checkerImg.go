@@ -1,4 +1,4 @@
-package models
+package checkerImgDomain
 
 import "github.com/google/uuid"
 

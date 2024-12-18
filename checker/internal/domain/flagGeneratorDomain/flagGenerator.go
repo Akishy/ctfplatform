@@ -1,4 +1,4 @@
-package models
+package flagGeneratorDomain
 
 import "go.uber.org/zap"
 

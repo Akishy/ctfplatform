@@ -1,4 +1,4 @@
-package models
+package vulnServiceDomain
 
 import "github.com/google/uuid"
 
