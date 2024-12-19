@@ -59,7 +59,7 @@ message PingVulnServiceRequest { // response is VulnServiceInfo ^
 
 
 message CreateVulnServiceRequest {
-  string service_id = 1; // это поле должно быть optional. Так как
+  string service_id = 1; // (checker) это поле должно быть optional. Так как созданный сервис может быть не сразу привязан к чекеру, так как чекер может быть ещё не подгружен в систему
   string ip = 2;
   int32 web_port = 3;
 }

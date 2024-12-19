@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/checkerDomain"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/checkerImgDomain"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/vulnServiceDomain"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/hashUtils"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/service/checkerService"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/service/vulnServiceService"
@@ -110,4 +111,35 @@ func (s *CheckerService) PingChecker(
 
 	return response, nil
 
+}
+
+func (s *CheckerService) CreateVulnService(_ context.Context, req *proto.CreateVulnServiceRequest) (*proto.CreateVulnServiceResponse, error) {
+	checkerUUID, err := uuid.Parse(req.GetServiceId())
+	if err != nil {
+		s.logger.Error("failed to parse req id uuid", zap.Error(err))
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse req id uuid")
+	}
+	if exists := s.checkerService.Exists(checkerUUID); !exists {
+		s.logger.Error("failed to find checker uuid", zap.String("req id", req.GetServiceId()))
+		return nil, status.Errorf(codes.InvalidArgument, "failed to find checker uuid")
+	}
+
+	vulnService := vulnServiceDomain.VulnService{
+		Uuid:       uuid.New(),
+		Ip:         req.GetIp(),
+		WebPort:    int(req.GetWebPort()),
+		StatusCode: vulnServiceDomain.DOWN,
+		Message:    "",
+		CheckerId:  checkerUUID,
+		LastCheck:  -1,
+	}
+
+	if err := s.vulnService.Create(&vulnService); err != nil {
+		s.logger.Error("failed to create vulnService", zap.Error(err))
+		return nil, status.Errorf(codes.Internal, "failed to create vulnService")
+	}
+	return &proto.CreateVulnServiceResponse{
+		InstanceId: vulnService.Uuid.String(),
+		Success:    true,
+	}, nil
 }
