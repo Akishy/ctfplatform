@@ -51,6 +51,9 @@ func (s *Storage) GetVulnServiceList(checkerUUID uuid.UUID) ([]*vulnServiceDomai
 			vulnServiceList = append(vulnServiceList, vulnService)
 		}
 	}
+	if len(vulnServiceList) == 0 {
+		return nil, errors.New(fmt.Sprintf("vulnService list is empty"))
+	}
 	return vulnServiceList, nil
 }
 
@@ -173,6 +176,18 @@ func (s *Storage) GetCheckerImg(checkerImgUuid uuid.UUID) (checkerImg *checkerIm
 		return nil, errors.New(fmt.Sprintf("checkerImg [%v] not found", checkerImgUuid))
 	}
 	return checkerImg, nil
+}
+
+func (s *Storage) ListAllRegisteredCheckers() ([]*checkerDomain.Checker, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	checkers := make([]*checkerDomain.Checker, 0, len(s.checkersData))
+	for _, checker := range s.checkersData {
+		if checker.Ip != "" && checker.WebPort != 0 {
+			checkers = append(checkers, checker)
+		}
+	}
+	return checkers, nil
 }
 
 func (s *Storage) CompareRawCheckerImg(raw string) (Img *checkerImgDomain.CheckerImg, err error) {

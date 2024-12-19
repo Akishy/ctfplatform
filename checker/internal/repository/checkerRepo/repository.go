@@ -18,6 +18,7 @@ type checkerRepo interface {
 	CreateChecker(checker *checkerDomain.Checker) error
 	UpdateChecker(checker *checkerDomain.Checker) error
 	GetChecker(UUID uuid.UUID) (*checkerDomain.Checker, error)
+	ListAllRegisteredCheckers() ([]*checkerDomain.Checker, error)
 }
 
 type vulnServiceRequestRepo interface {
