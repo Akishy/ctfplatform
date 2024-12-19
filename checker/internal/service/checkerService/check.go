@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (s *Service) Check(logger *zap.Logger, checkerUUID uuid.UUID) error {
+func (s *Service) Check(checkerUUID uuid.UUID) error {
 	checker, err := s.repo.GetChecker(checkerUUID)
 	if err != nil {
 		return err
@@ -44,30 +44,30 @@ func (s *Service) Check(logger *zap.Logger, checkerUUID uuid.UUID) error {
 
 			bytesBody, err := json.Marshal(request)
 			if err != nil {
-				logger.Error("(checkService) failed to marshal check request", zap.Error(err))
+				s.logger.Error("(checkService) failed to marshal check request", zap.Error(err))
 			}
 			reqBody := bytes.NewReader(bytesBody)
 
 			resp, err := client.Post(fmt.Sprintf("http://%v:%v/checkVulnService", checker.Ip, checker.WebPort), "application/json", reqBody)
 			if err != nil {
-				logger.Error("(checkService) failed to send check request", zap.Error(err))
+				s.logger.Error("(checkService) failed to send check request", zap.Error(err))
 			}
 
 			var response checkResponse
 			err = json.NewDecoder(resp.Body).Decode(&response)
 			if err != nil {
-				logger.Error("(checkService) failed to unmarshal check response", zap.Error(err))
+				s.logger.Error("(checkService) failed to unmarshal check response", zap.Error(err))
 			}
 			if !response.IsTaskAccepted {
-				logger.Error("(checkService) task is not accepted")
+				s.logger.Error("(checkService) task is not accepted")
 			}
 
 			if s.repo.CreateRequestToVulnService(request.RequestUUID, vulnService.Uuid) != nil {
-				logger.Error("(checkService) failed to connect request id with vuln service ", zap.Error(err))
+				s.logger.Error("(checkService) failed to connect request id with vuln service ", zap.Error(err))
 			}
 
 			if s.repo.CreateFlag(flag) != nil {
-				logger.Error("(checkService) failed to create flag", zap.Error(err))
+				s.logger.Error("(checkService) failed to create flag", zap.Error(err))
 			}
 		}()
 
