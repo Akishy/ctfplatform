@@ -6,5 +6,5 @@ import (
 )
 
 func (s *Service) Get(UUID uuid.UUID) (*vulnServiceDomain.VulnService, error) {
-	return s.repo.Get(UUID)
+	return s.repo.GetVulnService(UUID)
 }

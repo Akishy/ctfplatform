@@ -8,11 +8,30 @@ import (
 )
 
 type Repository interface {
+	checkerRepo
+	vulnServiceRequestRepo
+	vulnServiceRepo
+	flagGeneratorRepo
+}
+
+type checkerRepo interface {
 	CreateChecker(checker *checkerDomain.Checker) error
 	UpdateChecker(checker *checkerDomain.Checker) error
 	GetChecker(UUID uuid.UUID) (*checkerDomain.Checker, error)
-	GetVulnServiceList(UUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
+}
+
+type vulnServiceRequestRepo interface {
 	CreateRequestToVulnService(requestUUID, vulnServiceUUID uuid.UUID) error
 	GetRequestToVulnService(requestUUID uuid.UUID) (*vulnServiceDomain.RequestToVulnService, error)
+}
+
+type flagGeneratorRepo interface {
 	CreateFlag(flag *flagGeneratorDomain.Flag) error
+}
+
+type vulnServiceRepo interface {
+	GetVulnServiceList(UUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
+}
+
+type checkerImgRepo interface {
 }

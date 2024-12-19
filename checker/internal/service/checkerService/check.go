@@ -33,7 +33,7 @@ func (s *Service) Check(checkerUUID uuid.UUID) error {
 			wg.Add(1)
 			defer wg.Done()
 			reqUuid := uuid.New()
-			flag := s.flagGenerator.Generate()
+			flag := s.FlagGeneratorService.Generate()
 
 			request := checkRequest{
 				RequestUUID:     reqUuid,

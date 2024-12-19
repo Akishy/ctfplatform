@@ -5,11 +5,11 @@ import vulnServiceRepo "gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal
 //
 
 type Service struct {
-	Repo vulnServiceRepo.Repository
+	repo vulnServiceRepo.Repository
 }
 
 func NewService(repository vulnServiceRepo.Repository) *Service {
 	return &Service{
-		Repo: repository,
+		repo: repository,
 	}
 }

@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	api "gitlab.crja72.ru/gospec/go4/ctfplatform/checker/pkg/api/v1"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -15,21 +16,46 @@ type Server struct {
 
 var ServerFxOption fx.Option = fx.Options(fx.Provide(New), fx.Invoke(func(*Server) {}))
 
-func New(logger *zap.Logger, checkerService *CheckerService) *Server {
+func New(lc fx.Lifecycle, logger *zap.Logger, checkerService *CheckerService) *Server {
 	grpcServer := grpc.NewServer()
 	api.RegisterCheckerSystemServer(grpcServer, checkerService)
 
-	return &Server{grpcServer, logger}
-}
+	lc.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+			logger.Info("Starting gRPC server")
+			lis, err := net.Listen("tcp", ":4000")
+			if err != nil {
+				logger.Error("gRPC server initialization failed", zap.Error(err))
+			}
+			go func() {
+				if err := grpcServer.Serve(lis); err != nil {
+					logger.Error("gRPC server initialization failed", zap.Error(err))
+				}
+			}()
 
-func (s *Server) Start() error {
-	lis, err := net.Listen("tcp", ":4000")
-	if err != nil {
-		s.logger.Error("grpc server initialization failed", zap.Error(err))
+			return nil
+		},
+		OnStop: func(context.Context) error {
+			logger.Info("Stopping gRPC server")
+			grpcServer.GracefulStop()
+			return nil
+		},
+	})
+
+	return &Server{
+		grpcServer: grpcServer,
+		logger:     logger,
 	}
-	return s.grpcServer.Serve(lis)
 }
 
-func (s *Server) Stop() {
-	s.grpcServer.GracefulStop()
-}
+//func (s *Server) Start() error {
+//	lis, err := net.Listen("tcp", ":4000")
+//	if err != nil {
+//		s.logger.Error("grpc server initialization failed", zap.Error(err))
+//	}
+//	return s.grpcServer.Serve(lis)
+//}
+//
+//func (s *Server) Stop() {
+//	s.grpcServer.GracefulStop()
+//}

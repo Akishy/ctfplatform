@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/jsonUtils"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/service/vulnServiceService"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"net/http"
@@ -14,55 +16,33 @@ import (
 )
 
 type ServiceServer struct {
-	server *http.Server
-	logger *zap.Logger
+	server             *http.Server
+	logger             *zap.Logger
+	VulnServiceService *vulnServiceService.Service
 }
 
 // New создает новый экземпляр ServiceServer
-func New(port int, logger *zap.Logger) *ServiceServer {
-
+func New(port int, vulnServiceService *vulnServiceService.Service, logger *zap.Logger) *ServiceServer {
 	router := mux.NewRouter()
-	checkerRouter := router.PathPrefix("/checker").Subrouter()
-
-	// Регистрация маршрута для sendServiceStatus
-	checkerRouter.HandleFunc("/subscribe", func(w http.ResponseWriter, r *http.Request) {
-		var request subscribeCheckerRequest
-
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			logger.Error("failed to parse request", zap.Error(err))
-
-			respondErr := jsonUtils.RespondWith400(w, "bad request body")
-			if respondErr != nil {
-				logger.Error("failed to write response", zap.Error(err))
-			}
-		}
-
-	}).Methods("POST")
-
-	// Регистрация маршрута для sendServiceStatus
-	checkerRouter.HandleFunc("/sendServiceStatus", func(w http.ResponseWriter, r *http.Request) {
-		var request sendServiceStatusRequest
-
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			logger.Error("failed to parse request", zap.Error(err))
-
-			respondErr := jsonUtils.RespondWith400(w, "bad request body")
-			if respondErr != nil {
-				logger.Error("failed to write response", zap.Error(err))
-			}
-		}
-
-	}).Methods("POST")
-
-	router.PathPrefix("/checker").Handler(checkerRouter)
-
-	return &ServiceServer{
+	servServer := &ServiceServer{
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: router,
 		},
-		logger: logger,
+		logger:             logger,
+		VulnServiceService: vulnServiceService,
 	}
+	checkerRouter := router.PathPrefix("/checker").Subrouter()
+
+	// Регистрация маршрута для subscribe
+	checkerRouter.HandleFunc("/subscribe", servServer.SubscribeHandler).Methods("POST")
+
+	// Регистрация маршрута для sendServiceStatus
+	checkerRouter.HandleFunc("/sendServiceStatus", servServer.SendServiceStatus).Methods("POST")
+
+	router.PathPrefix("/checker").Handler(checkerRouter)
+
+	return servServer
 }
 
 // Start запускает HTTP сервер
@@ -88,4 +68,51 @@ func (s *ServiceServer) Stop() error {
 	}
 
 	return nil
+}
+
+func (s *ServiceServer) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
+	var request subscribeCheckerRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		s.logger.Error("failed to parse request", zap.Error(err))
+
+		respondErr := jsonUtils.RespondWith400(w, "bad request body")
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+	}
+}
+
+func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request) {
+	var request sendServiceStatusRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		s.logger.Error("failed to parse request", zap.Error(err))
+
+		respondErr := jsonUtils.RespondWith400(w, "bad request body")
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+	}
+
+	reqUUid, err := uuid.Parse(request.RequestUUID)
+	if err != nil {
+		s.logger.Error("failed to parse request", zap.Error(err))
+		if err := jsonUtils.RespondWith400(w, "bad request body"); err != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+	}
+
+	if err := s.VulnServiceService.UpdateByRequstUUID(reqUUid, request.StatusCode, request.Message, request.LastCheck); err != nil {
+		s.logger.Error("failed to update vulnService", zap.Error(err))
+		if _, err := w.Write([]byte("failed to update vulnService by request")); err != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+		err := jsonUtils.RespondWith500(w)
+		if err != nil {
+			s.logger.Error("failed to respond", zap.Error(err))
+		}
+
+	}
+
 }

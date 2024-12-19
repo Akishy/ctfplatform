@@ -49,8 +49,8 @@ message VulnServiceInfo {
   string message = 2; // Status message or additional information
   int32 web_port = 3;
   string ip = 4;
-  string instance_id = 5; // UUID of the instance
-  int32 last_check = 6; // Timestamp of the last check
+  string instance_id = 5; // UUID of the instance (vulnService)
+  int64 last_check = 6; // Timestamp of the last check
 }
 
 message PingVulnServiceRequest { // response is VulnServiceInfo ^
