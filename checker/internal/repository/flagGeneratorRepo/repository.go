@@ -7,5 +7,5 @@ import (
 
 type Repository interface {
 	CreateFlag(flag *flagGeneratorDomain.Flag) error
-	GetFlagInfo(uuid uuid.UUID) (flagGeneratorDomain.Flag, error)
+	GetFlagInfo(uuid uuid.UUID) (*flagGeneratorDomain.Flag, error)
 }

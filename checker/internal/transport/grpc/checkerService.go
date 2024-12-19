@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/checkerDomain"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/checkerImgDomain"
@@ -38,11 +39,11 @@ func (s *CheckerService) RegisterChecker(
 	response := &proto.RegisterCheckerResponse{
 		Id: "",
 	}
-	possibleCheckerImg, err := s.checkerService.CheckerImgService.Get(codeArchive)
+	_, err := s.checkerService.CheckerImgService.GetByRaw(codeArchive)
 	if err == nil {
 		s.logger.Info("checker image already exists", zap.String("code_archive", codeArchive))
-		response.Id = possibleCheckerImg.Uuid.String()
-		return response, nil
+		//response.Id = possibleCheckerImg.Uuid.String()
+		return response, status.Error(codes.Canceled, "checker image already exists")
 	}
 
 	codeArchiveHash, err := hashUtils.GenerateImgHash(codeArchive)
@@ -50,6 +51,7 @@ func (s *CheckerService) RegisterChecker(
 		s.logger.Error("failed to generate code archive hash", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to generate code archive hash")
 	}
+	s.logger.Debug("code archive hash", zap.String("code_archive", codeArchiveHash))
 	checkerImg := checkerImgDomain.CheckerImg{
 		Uuid:        uuid.New(),
 		Hash:        codeArchiveHash,
@@ -59,7 +61,7 @@ func (s *CheckerService) RegisterChecker(
 		s.logger.Error("failed to create checker image", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to create checker image")
 	}
-	response.Id = checkerImg.Uuid.String()
+	s.logger.Debug("checker image successfully created", zap.String("checkerImg", fmt.Sprintf("%v", checkerImg)))
 
 	newChecker := checkerDomain.Checker{
 		UUID:       uuid.New(),
@@ -71,6 +73,8 @@ func (s *CheckerService) RegisterChecker(
 		s.logger.Error("failed to create checker", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to create checker")
 	}
+	s.logger.Debug("checker successfully created", zap.String("checker", fmt.Sprintf("%v", newChecker)))
+	response.Id = newChecker.UUID.String()
 
 	return response, nil
 }

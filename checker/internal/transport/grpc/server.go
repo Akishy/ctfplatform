@@ -14,9 +14,18 @@ type Server struct {
 	logger     *zap.Logger
 }
 
-var ServerFxOption fx.Option = fx.Options(fx.Provide(New), fx.Invoke(func(*Server) {}))
+var ServerFxOption fx.Option = fx.Options(fx.Provide(NewFx), fx.Invoke(func(*Server) {}))
 
-func New(lc fx.Lifecycle, logger *zap.Logger, checkerService *CheckerService) *Server {
+func New(logger *zap.Logger, checkerService *CheckerService) *Server {
+	grpcServer := grpc.NewServer()
+	api.RegisterCheckerSystemServer(grpcServer, checkerService)
+	return &Server{
+		grpcServer: grpcServer,
+		logger:     logger,
+	}
+}
+
+func NewFx(lc fx.Lifecycle, logger *zap.Logger, checkerService *CheckerService) *Server {
 	grpcServer := grpc.NewServer()
 	api.RegisterCheckerSystemServer(grpcServer, checkerService)
 
@@ -48,14 +57,15 @@ func New(lc fx.Lifecycle, logger *zap.Logger, checkerService *CheckerService) *S
 	}
 }
 
-//func (s *Server) Start() error {
-//	lis, err := net.Listen("tcp", ":4000")
-//	if err != nil {
-//		s.logger.Error("grpc server initialization failed", zap.Error(err))
-//	}
-//	return s.grpcServer.Serve(lis)
-//}
-//
-//func (s *Server) Stop() {
-//	s.grpcServer.GracefulStop()
-//}
+func (s *Server) Start() error {
+	s.logger.Info("Starting gRPC server")
+	lis, err := net.Listen("tcp", ":4000")
+	if err != nil {
+		s.logger.Error("grpc server initialization failed", zap.Error(err))
+	}
+	return s.grpcServer.Serve(lis)
+}
+
+func (s *Server) Stop() {
+	s.grpcServer.GracefulStop()
+}

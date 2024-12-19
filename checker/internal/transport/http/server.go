@@ -24,7 +24,7 @@ type ServiceServer struct {
 }
 
 // New создает новый экземпляр ServiceServer
-func New(port int, vulnServiceService *vulnServiceService.Service, logger *zap.Logger) *ServiceServer {
+func New(port int, vulnServiceService *vulnServiceService.Service, checkerService *checkerService.Service, logger *zap.Logger) *ServiceServer {
 	router := mux.NewRouter()
 	servServer := &ServiceServer{
 		server: &http.Server{
@@ -33,6 +33,7 @@ func New(port int, vulnServiceService *vulnServiceService.Service, logger *zap.L
 		},
 		logger:             logger,
 		VulnServiceService: vulnServiceService,
+		CheckerService:     checkerService,
 	}
 	checkerRouter := router.PathPrefix("/checker").Subrouter()
 
@@ -74,6 +75,7 @@ func (s *ServiceServer) Stop() error {
 
 func (s *ServiceServer) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	var request subscribeCheckerRequest
+	response := subscribeCheckerResponse{}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		s.logger.Error("failed to parse request", zap.Error(err))
@@ -81,8 +83,11 @@ func (s *ServiceServer) SubscribeHandler(w http.ResponseWriter, r *http.Request)
 		respondErr := jsonUtils.RespondWith400(w, "bad request body")
 		if respondErr != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
 	}
+	s.logger.Debug("Decoded request to subscribeCheckerRequest struct", zap.Any("request", request))
 
 	id, err := uuid.Parse(request.CheckerUUID)
 	if err != nil {
@@ -90,22 +95,54 @@ func (s *ServiceServer) SubscribeHandler(w http.ResponseWriter, r *http.Request)
 		respondErr := jsonUtils.RespondWith400(w, "bad request body")
 		if respondErr != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
+	}
+	s.logger.Debug("parsed request.CheckerUUID to uuid", zap.Any("id", id))
+
+	if s.CheckerService.Subscribed(id) {
+		response.Status = "you are already subscribed"
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(&response); err != nil {
+			s.logger.Error("failed to encode response", zap.Error(err))
+			respondErr := jsonUtils.RespondWith500(w)
+			if respondErr != nil {
+				s.logger.Error("failed to write response", zap.Error(err))
+				return
+			}
+			return
+		}
+		return
 	}
 
 	err = s.CheckerService.SetCheckerAddress(id, request.Ip, request.Port)
-
 	if err != nil {
 		s.logger.Error("failed to set checker address", zap.Error(err))
+		_, _ = w.Write([]byte("failed to set checker address"))
 		respondErr := jsonUtils.RespondWith500(w)
 		if respondErr != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
+	}
+
+	response.Status = "success"
+	if err := json.NewEncoder(w).Encode(&response); err != nil {
+		s.logger.Error("failed to encode response", zap.Error(err))
+		respondErr := jsonUtils.RespondWith500(w)
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+			return
+		}
+		return
 	}
 }
 
 func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request) {
 	var request sendServiceStatusRequest
+	response := sendServiceStatusResponse{}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		s.logger.Error("failed to parse request", zap.Error(err))
@@ -113,7 +150,9 @@ func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request
 		respondErr := jsonUtils.RespondWith400(w, "bad request body")
 		if respondErr != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
 	}
 
 	reqUUid, err := uuid.Parse(request.RequestUUID)
@@ -121,17 +160,28 @@ func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request
 		s.logger.Error("failed to parse request", zap.Error(err))
 		if err := jsonUtils.RespondWith400(w, "bad request body"); err != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
 	}
 
 	if err := s.VulnServiceService.UpdateByRequstUUID(reqUUid, request.StatusCode, request.Message, request.LastCheck); err != nil {
 		s.logger.Error("failed to update vulnService", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
 		if _, err := w.Write([]byte("failed to update vulnService by request")); err != nil {
 			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
-		err := jsonUtils.RespondWith500(w)
-		if err != nil {
-			s.logger.Error("failed to respond", zap.Error(err))
+		return
+	}
+	response.Accepted = "accepted"
+	if err := json.NewEncoder(w).Encode(&response); err != nil {
+		s.logger.Error("failed to encode response", zap.Error(err))
+		respondErr := jsonUtils.RespondWith500(w)
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+			return
 		}
+		return
 	}
 }

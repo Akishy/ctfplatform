@@ -8,6 +8,10 @@ type subscribeCheckerRequest struct {
 	Port        int    `json:"port"`
 }
 
+type subscribeCheckerResponse struct {
+	Status string `json:"status"`
+}
+
 type sendServiceStatusRequest struct {
 	RequestUUID string                              `json:"request_uuid"`
 	StatusCode  vulnServiceDomain.VulnServiceStatus `json:"status_code"`
@@ -15,4 +19,8 @@ type sendServiceStatusRequest struct {
 	WebPort     int                                 `json:"web_port,omitempty"`
 	Ip          string                              `json:"ip,omitempty"`
 	LastCheck   int64                               `json:"last_check"`
+}
+
+type sendServiceStatusResponse struct {
+	Accepted string `json:"accepted"`
 }

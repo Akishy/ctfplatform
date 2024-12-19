@@ -8,6 +8,7 @@ import (
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/checkerImgDomain"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/flagGeneratorDomain"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/vulnServiceDomain"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/hashUtils"
 	"sync"
 )
 
@@ -15,16 +16,19 @@ type Storage struct {
 	vulnServicesData           map[uuid.UUID]*vulnServiceDomain.VulnService
 	checkersData               map[uuid.UUID]*checkerDomain.Checker
 	requestsToVulnServicesData map[uuid.UUID]*vulnServiceDomain.RequestToVulnService
-	checkerImgData             map[string]*checkerImgDomain.CheckerImg
+	checkerImgData             map[uuid.UUID]*checkerImgDomain.CheckerImg
 	flagData                   map[uuid.UUID]*flagGeneratorDomain.Flag
 	mu                         sync.RWMutex
 }
 
 func NewStorage() *Storage {
 	return &Storage{
-		vulnServicesData: make(map[uuid.UUID]*vulnServiceDomain.VulnService),
-		checkersData:     make(map[uuid.UUID]*checkerDomain.Checker),
-		mu:               sync.RWMutex{},
+		vulnServicesData:           make(map[uuid.UUID]*vulnServiceDomain.VulnService),
+		checkersData:               make(map[uuid.UUID]*checkerDomain.Checker),
+		requestsToVulnServicesData: make(map[uuid.UUID]*vulnServiceDomain.RequestToVulnService),
+		checkerImgData:             make(map[uuid.UUID]*checkerImgDomain.CheckerImg),
+		flagData:                   make(map[uuid.UUID]*flagGeneratorDomain.Flag),
+		mu:                         sync.RWMutex{},
 	}
 }
 
@@ -141,24 +145,46 @@ func (s *Storage) CreateFlag(flag *flagGeneratorDomain.Flag) error {
 	return nil
 }
 
+func (s *Storage) GetFlagInfo(uuid uuid.UUID) (*flagGeneratorDomain.Flag, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	flagInfo, ok := s.flagData[uuid]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("flag [%v] not found", uuid.String()))
+	}
+	return flagInfo, nil
+}
+
 func (s *Storage) CreateCheckerImg(checkerImg *checkerImgDomain.CheckerImg) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if _, ok := s.checkerImgData[checkerImg.Hash]; ok {
+	if _, ok := s.checkerImgData[checkerImg.Uuid]; ok {
 		return errors.New(fmt.Sprintf("checkerImg [%v] already exists", checkerImg.Hash))
 	}
-	s.checkerImgData[checkerImg.Hash] = checkerImg
+	s.checkerImgData[checkerImg.Uuid] = checkerImg
 	return nil
 }
 
-func (s *Storage) GetCheckerImg(ImgHash string) (checkerImg *checkerImgDomain.CheckerImg, err error) {
+func (s *Storage) GetCheckerImg(checkerImgUuid uuid.UUID) (checkerImg *checkerImgDomain.CheckerImg, err error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	checkerImg, ok := s.checkerImgData[ImgHash]
+	checkerImg, ok := s.checkerImgData[checkerImgUuid]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("checkerImg [%v] not found", ImgHash))
+		return nil, errors.New(fmt.Sprintf("checkerImg [%v] not found", checkerImgUuid))
 	}
 	return checkerImg, nil
+}
+
+func (s *Storage) CompareRawCheckerImg(raw string) (Img *checkerImgDomain.CheckerImg, err error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, checkerImg := range s.checkerImgData {
+		found := hashUtils.CompareImgHash(raw, checkerImg.Hash)
+		if found {
+			return checkerImg, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("checkerImg with byteslen [%v] not found", len(raw)))
 }
 
 //func (s *Storage) GetFlag(uuid uuid.UUID) (*flagGeneratorDomain.Flag, error) {

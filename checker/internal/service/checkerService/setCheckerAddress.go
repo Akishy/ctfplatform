@@ -7,7 +7,11 @@ import (
 )
 
 func (s *Service) SetCheckerAddress(uuid uuid.UUID, ip string, port int) error {
-	var checker checkerDomain.Checker
+	checker := checkerDomain.Checker{
+		CheckerImg: nil, // найти и присвоить
+		Ip:         "",
+		WebPort:    0,
+	}
 	if checkerPointer, err := s.repo.GetChecker(uuid); err != nil {
 		s.logger.Error("failed to get checker by uuid", zap.Error(err))
 		return err
