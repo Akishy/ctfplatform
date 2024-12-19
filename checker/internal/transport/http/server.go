@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/jsonUtils"
+	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/service/checkerService"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/service/vulnServiceService"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -19,6 +20,7 @@ type ServiceServer struct {
 	server             *http.Server
 	logger             *zap.Logger
 	VulnServiceService *vulnServiceService.Service
+	CheckerService     *checkerService.Service
 }
 
 // New создает новый экземпляр ServiceServer
@@ -81,6 +83,25 @@ func (s *ServiceServer) SubscribeHandler(w http.ResponseWriter, r *http.Request)
 			s.logger.Error("failed to write response", zap.Error(err))
 		}
 	}
+
+	id, err := uuid.Parse(request.CheckerUUID)
+	if err != nil {
+		s.logger.Error("failed to parse checker UUID", zap.Error(err))
+		respondErr := jsonUtils.RespondWith400(w, "bad request body")
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+	}
+
+	err = s.CheckerService.SetCheckerAddress(id, request.Ip, request.Port)
+
+	if err != nil {
+		s.logger.Error("failed to set checker address", zap.Error(err))
+		respondErr := jsonUtils.RespondWith500(w)
+		if respondErr != nil {
+			s.logger.Error("failed to write response", zap.Error(err))
+		}
+	}
 }
 
 func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +133,5 @@ func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			s.logger.Error("failed to respond", zap.Error(err))
 		}
-
 	}
-
 }
