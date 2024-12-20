@@ -1,0 +1,5 @@
+serviceName: "checker"
+loggerType: "development"
+loggerLogLevel: "debug"
+loggerLogType: "console"
+loggerWriter: "stdout"
