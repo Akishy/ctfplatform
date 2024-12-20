@@ -1,0 +1,30 @@
+
+services:
+  checker-system:
+    build:
+      context: checker
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+      - "4010:4010"
+    network_mode: "host"
+
+  test-checker:
+    build:
+      context: testChecker
+      dockerfile: Dockerfile
+    ports:
+      - "4030:4030"
+    depends_on:
+      - checker-system
+    network_mode: "host"
+
+  test-vuln-service:
+    build:
+      context: testVulnService
+      dockerfile: Dockerfile
+    ports:
+      - "4040:4040"
+    depends_on:
+      - checker-system
+    network_mode: "host"

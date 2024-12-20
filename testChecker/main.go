@@ -39,6 +39,7 @@ func main() {
 	if uuid == "" {
 		log.Fatal("UUID environment variable not set")
 	}
+	log.Println("UUID:", uuid)
 
 	url := "http://localhost:4010/checker/subscribe"
 

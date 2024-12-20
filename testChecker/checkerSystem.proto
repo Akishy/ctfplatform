@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package CheckerSystem;
+
+option go_package = "deployer/pkg/proto";
+
+// Service definition for orchestrating Checkers
+service CheckerSystem {
+
+  // Register a new (checker) from a folder of files
+  rpc RegisterChecker (RegisterCheckerRequest) returns (RegisterCheckerResponse);
+
+  // Check the status of a checker by its ID
+  rpc PingChecker (PingCheckerRequest) returns (PingCheckerResponse);
+
+  rpc CreateVulnService (CreateVulnServiceRequest) returns (CreateVulnServiceResponse);
+
+  // Stop a checker by its ID
+  rpc StopVulnServices (StopVulnServicesRequest) returns (StopVulnServicesResponse);
+
+  rpc PingVulnService (PingVulnServiceRequest) returns (VulnServiceInfo);
+
+}
+
+// Request to register a new checker
+message RegisterCheckerRequest {
+  string code_archive = 1;
+}
+
+// Response after registrating checker
+message RegisterCheckerResponse {
+  string id = 1; // UUID of the created checker
+}
+
+// Request to check the status of a checker
+message PingCheckerRequest {
+  string id = 1; // UUID of the checker
+}
+
+// Response for the Ping endpoint
+message PingCheckerResponse {
+  string message = 1; // Status message or additional information
+  repeated VulnServiceInfo VulnServicesInfos = 2;
+}
+
+// Миша, не реализована функциональность с флагом. Как сервис admin будет знать, какие флаги валидны?
+message VulnServiceInfo {
+  int32 status_code = 1; // Status code of the operation
+  string message = 2; // Status message or additional information
+  int32 web_port = 3;
+  string ip = 4;
+  string instance_id = 5; // UUID of the instance (vulnService)
+  int64 last_check = 6; // Timestamp of the last check
+}
+
+message PingVulnServiceRequest { // response is VulnServiceInfo ^
+  string instance_id = 1; // UUID of the instance
+}
+
+
+message CreateVulnServiceRequest {
+  string service_id = 1; // (checker) это поле должно быть optional. Так как созданный сервис может быть не сразу привязан к чекеру, так как чекер может быть ещё не подгружен в систему
+  string ip = 2;
+  int32 web_port = 3;
+}
+
+message CreateVulnServiceResponse {
+  string instance_id = 1;
+  bool success = 2;
+}
+
+message StopVulnServicesRequest {
+  repeated string instance_ids = 1;
+}
+
+message StopVulnServicesResponse {
+  bool success = 1;
+}

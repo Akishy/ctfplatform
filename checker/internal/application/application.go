@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/adapters/memory"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/config"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/logger"
@@ -47,10 +46,10 @@ func Init() {
 	})
 
 	go func() {
-		fmt.Println("checkerGoroutine started")
+		lgr.Info("checkerService started")
 		time.Sleep(4 * defaultCheckDelay)
 		for {
-			fmt.Println("I sleep")
+			lgr.Debug("checkerService sleep")
 			time.Sleep(defaultCheckDelay)
 			_ = checkService.Check()
 		}
