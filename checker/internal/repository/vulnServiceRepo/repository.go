@@ -12,9 +12,10 @@ type Repository interface {
 
 type vulnServiceRepo interface {
 	GetVulnService(vulnServiceUUID uuid.UUID) (*vulnServiceDomain.VulnService, error)
-	GetVulnServiceList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
+	GetActiveVulnServiceList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
 	CreateVulnService(vulnService *vulnServiceDomain.VulnService) error
 	UpdateVulnService(uuid uuid.UUID, statusCode vulnServiceDomain.VulnServiceStatus, message string, lastCheck int64) error
+	DeactivateVulnService(uuid uuid.UUID) error
 }
 type vulnServiceRequestRepo interface {
 	GetRequestToVulnService(requestUUID uuid.UUID) (*vulnServiceDomain.RequestToVulnService, error)

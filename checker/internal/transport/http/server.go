@@ -165,7 +165,7 @@ func (s *ServiceServer) SendServiceStatus(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := s.VulnServiceService.UpdateByRequstUUID(reqUUid, request.StatusCode, request.Message, request.LastCheck); err != nil {
+	if err := s.VulnServiceService.UpdateByRequestUUID(reqUUid, request.StatusCode, request.Message, request.LastCheck); err != nil {
 		s.logger.Error("failed to update vulnService", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		if _, err := w.Write([]byte("failed to update vulnService by request")); err != nil {

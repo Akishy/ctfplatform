@@ -22,4 +22,5 @@ type VulnService struct {
 	Message    string
 	CheckerId  uuid.UUID
 	LastCheck  int64
+	Active     bool
 }

@@ -25,10 +25,10 @@ func (s *Service) Check() error {
 		go func() {
 			wg.Add(1)
 			defer wg.Done()
-			vulnServices, err := s.repo.GetVulnServiceList(checker.UUID)
+			vulnServices, err := s.repo.GetActiveVulnServiceList(checker.UUID)
 			if err != nil {
 				s.logger.Warn("No vulnServices")
-				//s.logger.Error("GetVulnServiceList", zap.Error(err))
+				//s.logger.Error("GetActiveVulnServiceList", zap.Error(err))
 			}
 			innerwg := &sync.WaitGroup{}
 			for _, vulnService := range vulnServices {

@@ -39,15 +39,18 @@ func (s *Storage) GetVulnService(vulnServiceUUID uuid.UUID) (*vulnServiceDomain.
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("vulnService [%v] not found", vulnServiceUUID.String()))
 	}
+	if !vulnService.Active {
+		return nil, errors.New(fmt.Sprintf("vulnService [%v] deactived", vulnServiceUUID.String()))
+	}
 	return vulnService, nil
 }
 
-func (s *Storage) GetVulnServiceList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error) {
+func (s *Storage) GetActiveVulnServiceList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	vulnServiceList := make([]*vulnServiceDomain.VulnService, 0)
 	for _, vulnService := range s.vulnServicesData {
-		if vulnService.CheckerId == checkerUUID {
+		if vulnService.CheckerId == checkerUUID && vulnService.Active {
 			vulnServiceList = append(vulnServiceList, vulnService)
 		}
 	}
@@ -63,7 +66,9 @@ func (s *Storage) CreateVulnService(vulnService *vulnServiceDomain.VulnService) 
 	if _, ok := s.vulnServicesData[vulnService.Uuid]; ok {
 		return errors.New(fmt.Sprintf("vulnService [%v] already exists", vulnService.Uuid.String()))
 	}
+	vulnService.Active = true // на всякий случай
 	s.vulnServicesData[vulnService.Uuid] = vulnService
+
 	return nil
 }
 
@@ -82,6 +87,17 @@ func (s *Storage) UpdateVulnService(
 		vulnService.LastCheck = lastCheck
 	}
 
+	return nil
+}
+
+func (s *Storage) DeactivateVulnService(uuid uuid.UUID) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	vulnService, ok := s.vulnServicesData[uuid]
+	if !ok {
+		return errors.New(fmt.Sprintf("vulnService [%v] not found", vulnService.Uuid.String()))
+	}
+	vulnService.Active = false
 	return nil
 }
 
@@ -113,7 +129,6 @@ func (s *Storage) GetChecker(UUID uuid.UUID) (*checkerDomain.Checker, error) {
 	return checker, nil
 }
 
-// хз в какой интерфейс, скорее всего VulnService
 func (s *Storage) CreateRequestToVulnService(requestUUID, vulnServiceUUID uuid.UUID) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

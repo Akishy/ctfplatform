@@ -5,7 +5,7 @@ import (
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/checker/internal/domain/vulnServiceDomain"
 )
 
-func (s *Service) UpdateByRequstUUID(UUID uuid.UUID,
+func (s *Service) UpdateByRequestUUID(UUID uuid.UUID,
 	statusCode vulnServiceDomain.VulnServiceStatus,
 	message string,
 	lastCheck int64) error {

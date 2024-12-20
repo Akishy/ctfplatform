@@ -31,7 +31,7 @@ type flagGeneratorRepo interface {
 }
 
 type vulnServiceRepo interface {
-	GetVulnServiceList(UUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
+	GetActiveVulnServiceList(UUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error)
 }
 
 type checkerImgRepo interface {

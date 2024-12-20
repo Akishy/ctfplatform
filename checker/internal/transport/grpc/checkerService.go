@@ -88,7 +88,7 @@ func (s *CheckerService) PingChecker(
 		return nil, status.Errorf(codes.InvalidArgument, "failed to parse req id uuid")
 	}
 
-	vulnServiceList, err := s.vulnService.GetList(checkerUuid)
+	vulnServiceList, err := s.vulnService.GetActiveList(checkerUuid)
 	if err != nil {
 		s.logger.Error("failed to get vulnService list", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "failed to get vuln services")
@@ -136,6 +136,7 @@ func (s *CheckerService) CreateVulnService(_ context.Context, req *proto.CreateV
 		Message:    "",
 		CheckerId:  checkerUUID,
 		LastCheck:  -1,
+		Active:     true,
 	}
 
 	if err := s.vulnService.Create(&vulnService); err != nil {
@@ -146,4 +147,47 @@ func (s *CheckerService) CreateVulnService(_ context.Context, req *proto.CreateV
 		InstanceId: vulnService.Uuid.String(),
 		Success:    true,
 	}, nil
+}
+
+func (s *CheckerService) StopVulnServices(_ context.Context, req *proto.StopVulnServicesRequest) (*proto.StopVulnServicesResponse, error) {
+	for _, id := range req.GetInstanceIds() {
+		vulnServiceUuid, err := uuid.Parse(id)
+		if err != nil {
+			s.logger.Error("failed to parse req id uuid", zap.Error(err))
+			return nil, status.Errorf(codes.InvalidArgument, "failed to parse req id uuid")
+		}
+		err = s.vulnService.DeactivateVulnService(vulnServiceUuid)
+		if err != nil {
+			s.logger.Error("failed to deactivate vulnService", zap.Error(err))
+			return nil, status.Errorf(codes.Internal, "failed to deactivate vulnService")
+		}
+	}
+
+	return &proto.StopVulnServicesResponse{
+		Success: true,
+	}, nil
+}
+func (s *CheckerService) PingVulnService(_ context.Context, req *proto.PingVulnServiceRequest) (*proto.VulnServiceInfo, error) {
+	vulnServiceUuid, err := uuid.Parse(req.InstanceId)
+	if err != nil {
+		s.logger.Error("failed to parse req id uuid", zap.Error(err))
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse req id uuid")
+	}
+
+	vulnService, err := s.vulnService.Get(vulnServiceUuid)
+	if err != nil {
+		s.logger.Error("failed to get vulnService info", zap.Error(err))
+		return nil, status.Errorf(codes.Internal, "failed to get vulnService info")
+	}
+
+	response := &proto.VulnServiceInfo{
+		StatusCode: int32(vulnService.StatusCode),
+		Message:    vulnService.Message,
+		WebPort:    int32(vulnService.WebPort),
+		Ip:         vulnService.Ip,
+		InstanceId: vulnService.Uuid.String(),
+		LastCheck:  vulnService.LastCheck,
+	}
+
+	return response, nil
 }

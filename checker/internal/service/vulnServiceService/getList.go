@@ -6,6 +6,6 @@ import (
 )
 
 // get list of services by checker uuid
-func (s *Service) GetList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error) {
-	return s.repo.GetVulnServiceList(checkerUUID)
+func (s *Service) GetActiveList(checkerUUID uuid.UUID) ([]*vulnServiceDomain.VulnService, error) {
+	return s.repo.GetActiveVulnServiceList(checkerUUID)
 }
