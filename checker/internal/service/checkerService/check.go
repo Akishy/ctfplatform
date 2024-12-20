@@ -48,6 +48,14 @@ func (s *Service) Check() error {
 					}
 					s.logger.Debug("request struct created", zap.Any("request", request))
 
+					if s.repo.CreateRequestToVulnService(request.RequestUUID, vulnService.Uuid) != nil {
+						s.logger.Error("(checkService) failed to connect request id with vuln service ", zap.Error(err))
+					}
+
+					if s.repo.CreateFlag(flag) != nil {
+						s.logger.Error("(checkService) failed to create flag", zap.Error(err))
+					}
+
 					bytesBody, err := json.Marshal(request)
 					if err != nil {
 						s.logger.Error("(checkService) failed to marshal check request", zap.Error(err))
@@ -61,6 +69,7 @@ func (s *Service) Check() error {
 						s.logger.Error("(checkService) failed to send check request", zap.Error(err))
 						return
 					}
+					s.logger.Debug("(checkService) successfully recieved response", zap.Any("checker_response", resp))
 
 					var response checkResponse
 					err = json.NewDecoder(resp.Body).Decode(&response)
@@ -74,13 +83,6 @@ func (s *Service) Check() error {
 						return
 					}
 
-					if s.repo.CreateRequestToVulnService(request.RequestUUID, vulnService.Uuid) != nil {
-						s.logger.Error("(checkService) failed to connect request id with vuln service ", zap.Error(err))
-					}
-
-					if s.repo.CreateFlag(flag) != nil {
-						s.logger.Error("(checkService) failed to create flag", zap.Error(err))
-					}
 				}()
 			}
 			innerwg.Wait()
