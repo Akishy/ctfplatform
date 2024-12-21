@@ -6,12 +6,12 @@ import (
 )
 
 type TeamRepo interface {
-	CreateTeam(ctx context.Context, name string) (string, error)
-	deleteTeam(ctx context.Context, teamId string) error
-	addMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
-	deleteMember(ctx context.Context, teamId string, userId string) error
+	CreateTeamWithCaptain(ctx context.Context, teamName string, userId int64) (string, error)
+	DeleteTeam(ctx context.Context, teamId string) error
+	AddMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
+	DeleteMember(ctx context.Context, teamId string, userId string) error
 	IsTeamExistsByName(ctx context.Context, name string) (bool, error)
-	getTeamMembers(ctx context.Context, teamId string) ([]models.User, error)
+	GetTeamMembers(ctx context.Context, teamId string) ([]models.User, error)
 	GetTeams(ctx context.Context) ([]models.Team, error)
 }
 
@@ -25,29 +25,28 @@ func NewTeamService(repo TeamRepo) *TeamService {
 	}
 }
 
-func (s *TeamService) CreateTeam(ctx context.Context, teamName string, ownerId string) error {
-	teamId, err := s.repo.CreateTeam(ctx, teamName)
+func (s *TeamService) CreateTeam(ctx context.Context, teamName string, ownerId int64) (string, error) {
+	teamId, err := s.repo.CreateTeamWithCaptain(ctx, teamName, ownerId)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = s.repo.addMember(ctx, teamId, ownerId, true)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return teamId, nil
 }
 
 func (s *TeamService) DeleteTeam(ctx context.Context, teamId string, userId string) error {
 
-	err := s.repo.deleteMember(ctx, teamId, userId)
+	// проверка на является пользователь капитаном которой тут нет
+
+	err := s.repo.DeleteTeam(ctx, teamId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *TeamService) AddMember(ctx context.Context, teamId string, userId string, isCaptain bool) error {
-	err := s.repo.addMember(ctx, teamId, userId, isCaptain)
+func (s *TeamService) AddMember(ctx context.Context, teamId string, userId string) error {
+	err := s.repo.AddMember(ctx, teamId, userId, false)
 	if err != nil {
 		return err
 	}
@@ -71,7 +70,7 @@ func (s *TeamService) GetTeams(ctx context.Context) ([]models.Team, error) {
 }
 
 func (s *TeamService) GetTeamMembers(ctx context.Context, teamId string) ([]models.User, error) {
-	members, err := s.repo.getTeamMembers(ctx, teamId)
+	members, err := s.repo.GetTeamMembers(ctx, teamId)
 	if err != nil {
 		return nil, err
 	}
