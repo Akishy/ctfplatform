@@ -20,6 +20,7 @@ import (
 
 type Repository interface {
 	service.UserRepo
+	service.TeamRepo
 	Close() error
 }
 

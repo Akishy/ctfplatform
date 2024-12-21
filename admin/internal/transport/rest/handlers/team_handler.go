@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/jwtutils"
 	"gitlab.crja72.ru/gospec/go4/ctfplatform/admin/internal/models"
@@ -11,10 +12,10 @@ import (
 )
 
 type TeamService interface {
-	createTeam(ctx context.Context, teamName string, ownerId int64) error
-	deleteTeam(ctx context.Context, teamId string) error
-	addMember(ctx context.Context, teamId string, userId string, isCaptain bool) error
-	deleteMember(ctx context.Context, teamId string, userId string) error
+	CreateTeam(ctx context.Context, teamName string, ownerId int64) (string, error)
+	DeleteTeam(ctx context.Context, teamId string, userId string) error
+	AddMember(ctx context.Context, teamId string, userId string) error
+	//DeleteMember(ctx context.Context, teamId string, userId string) error
 	IsTeamExistsByName(ctx context.Context, name string) (bool, error)
 	GetTeams(ctx context.Context) ([]models.Team, error)
 	GetTeamMembers(ctx context.Context, teamId string) ([]models.User, error)
@@ -54,20 +55,20 @@ func (e *TeamEndpoints) createTeamHandler(c echo.Context) error {
 	}
 
 	// Вызываем метод регистрации сервиса
-	err := e.service.createTeam(e.context, request.TeamName, userid)
+	teamId, err := e.service.CreateTeam(e.context, request.TeamName, userid)
 	if err != nil {
 		// обработка ошибок сервиса
 		//...
 		//...
 		//...
 
-		l.Error(e.context, "failed to create user", zap.Error(err))
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to create user")
+		l.Error(e.context, "failed to create team", zap.Error(err))
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to create team")
 	}
 
 	// Успешная регистрация
 	return c.JSON(http.StatusCreated, map[string]string{
-		"message": "Team registered successfully",
+		"message": fmt.Sprintf("Team registered successfully, uuid: [%v]", teamId),
 	})
 }
 
