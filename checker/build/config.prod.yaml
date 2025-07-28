@@ -1,5 +1,0 @@
-serviceName: "checker"
-loggerType: "production"
-loggerLogLevel: "info"
-loggerLogType: "json"
-loggerWriter: "stdout;./checker.log"

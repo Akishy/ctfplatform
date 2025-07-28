@@ -38,7 +38,7 @@ services:
 
   app:
     build:
-      context: admin
+      context: Control
       dockerfile: Dockerfile
     ports:
       - "${APP_PORT}:${APP_PORT}"

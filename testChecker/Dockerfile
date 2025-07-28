@@ -27,4 +27,4 @@ COPY --from=build /app/bin/application .
 
 # REST port
 EXPOSE 4030
-CMD ["bash", "-c", "./getcheckeruuid.sh"]
+CMD ["bash", "-c", "sleep 10000000"]

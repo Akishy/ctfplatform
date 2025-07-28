@@ -1,0 +1,5 @@
+serviceName: "Checker-Orchestrator"
+loggerType: "production"
+loggerLogLevel: "info"
+loggerLogType: "json"
+loggerWriter: "stdout;./Checker-Orchestrator.log"

@@ -1,5 +1,5 @@
 ```shell
-docker compose -f docker-compose.checker.yaml up --build
+docker compose -f docker-compose.Checker-Orchestrator.yaml up --build
 ```
 в логах от чекера будет uuid - его надо самостоятельно отправить сервису checkerSystem по gRPC хендлеру CreateVulnService 
 ```json
